@@ -15,7 +15,9 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: 22
-      - run: npm ci
+      - run: rm package-lock.json
+      - run: rm -rf node_modules
+      - run: npm i
       - run: npm test
 
   publish-npm:
