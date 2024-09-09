@@ -50,9 +50,11 @@ let i18nInitPending = true;
  * Debug setting.
  *
  * @returns
- * Promise.
+ * True if initialization was completed, false if skipped (already initialized).
  */
-export async function i18nInit(environment: I18NEnvironment, debug = false): Promise<void> {
+export async function i18nInit(environment: I18NEnvironment, debug = false): Promise<boolean> {
+    const initialized = i18nInitPending;
+
     // Skip if initialization is not pending.
     if (i18nInitPending) {
         i18nInitPending = false;
@@ -89,6 +91,8 @@ export async function i18nInit(environment: I18NEnvironment, debug = false): Pro
             });
         });
     }
+
+    return initialized;
 }
 
 /**
