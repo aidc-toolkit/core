@@ -38,6 +38,8 @@ export enum I18NEnvironment {
     Browser
 }
 
+let i18nInitPending = true;
+
 /**
  * Initialize internationalization.
  *
@@ -46,9 +48,15 @@ export enum I18NEnvironment {
  *
  * @param debug
  * Debug setting.
+ *
+ * @returns
+ * Promise.
  */
 export async function i18nInit(environment: I18NEnvironment, debug = false): Promise<void> {
-    if (pendingResourceBundles !== undefined) {
+    // Skip if initialization is not pending.
+    if (i18nInitPending) {
+        i18nInitPending = false;
+
         let module: object;
 
         switch (environment) {
@@ -80,8 +88,6 @@ export async function i18nInit(environment: I18NEnvironment, debug = false): Pro
                 i18nAddResourceBundle(initResourceBundle.lng, initResourceBundle.ns, initResourceBundle.resources);
             });
         });
-    } else {
-        throw new Error("i18n already initialized");
     }
 }
 
