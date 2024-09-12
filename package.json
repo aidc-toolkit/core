@@ -20,8 +20,7 @@
   },
   "scripts": {
     "eslint": "eslint .",
-    "build": "tsup src/index.ts --format cjs,esm --dts",
-    "test": "vitest run"
+    "build": "tsup src/index.ts --format cjs,esm --dts"
   },
   "devDependencies": {
     "@aidc-toolkit/dev": "^0.9.0",
@@ -32,8 +31,7 @@
     "ts-node": "^10.9.2",
     "tsup": "^8.2.4",
     "typescript": "^5.6.2",
-    "typescript-eslint": "^8.5.0",
-    "vitest": "^2.0.5"
+    "typescript-eslint": "^8.5.0"
   },
   "dependencies": {
     "i18next": "^23.15.1",
