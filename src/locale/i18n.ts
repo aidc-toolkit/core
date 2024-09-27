@@ -86,9 +86,9 @@ export async function i18nInit(environment: I18NEnvironment, debug = false): Pro
             pendingResourceBundles = undefined;
 
             // Add pending resource bundles.
-            initResourceBundles.forEach((initResourceBundle) => {
+            for (const initResourceBundle of initResourceBundles) {
                 i18nAddResourceBundle(initResourceBundle.lng, initResourceBundle.ns, initResourceBundle.resources);
-            });
+            }
         });
     }
 
