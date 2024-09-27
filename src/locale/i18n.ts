@@ -1,5 +1,5 @@
 import i18next from "i18next";
-import I18nextBrowserLanguageDetector from "i18next-browser-languageDetector";
+import I18nextBrowserLanguageDetector from "i18next-browser-languagedetector";
 import I18nextCLILanguageDetector from "i18next-cli-language-detector";
 
 export default i18next;
