@@ -38,8 +38,6 @@ export enum I18NEnvironment {
     Browser
 }
 
-let i18nInitPending = true;
-
 /**
  * Initialize internationalization.
  *
@@ -53,11 +51,11 @@ let i18nInitPending = true;
  * True if initialization was completed, false if skipped (already initialized).
  */
 export async function i18nInit(environment: I18NEnvironment, debug = false): Promise<boolean> {
-    const initialized = i18nInitPending;
+    let initialized: boolean;
 
     // Skip if initialization is not pending.
-    if (i18nInitPending) {
-        i18nInitPending = false;
+    if (pendingResourceBundles !== undefined) {
+        initialized = true;
 
         let module: object;
 
@@ -74,22 +72,23 @@ export async function i18nInit(environment: I18NEnvironment, debug = false): Pro
                 throw new Error("Not supported");
         }
 
+        const initResourceBundles = pendingResourceBundles;
+
+        // No need to manage pending resource bundles past this point.
+        pendingResourceBundles = undefined;
+
         await i18next.use(module as never).init({
             fallbackLng: "en",
             debug,
             resources: {}
         }).then(() => {
-            // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-            const initResourceBundles = pendingResourceBundles!;
-
-            // No need to manage pending resource bundles past this point.
-            pendingResourceBundles = undefined;
-
             // Add pending resource bundles.
             for (const initResourceBundle of initResourceBundles) {
                 i18nAddResourceBundle(initResourceBundle.lng, initResourceBundle.ns, initResourceBundle.resources);
             }
         });
+    } else {
+        initialized = false;
     }
 
     return initialized;
