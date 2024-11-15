@@ -82,6 +82,9 @@ export async function i18nInit(environment: I18NEnvironment, debug = false): Pro
             debug,
             resources: {}
         }).then(() => {
+            // Add toLowerCase function.
+            i18next.services.formatter?.add("toLowerCase", value => (value as string).toLowerCase());
+
             // Add pending resource bundles.
             for (const initResourceBundle of initResourceBundles) {
                 i18nAddResourceBundle(initResourceBundle.lng, initResourceBundle.ns, initResourceBundle.resources);
@@ -114,6 +117,55 @@ export function i18nAddResourceBundle(lng: string, ns: string, resources: object
             resources
         });
     } else {
+        // Already initialized; add resource bundle directly.
         i18next.addResourceBundle(lng, ns, resources);
+    }
+}
+
+/**
+ * Assert that language resources are a type match for English (default) resources.
+ *
+ * @param enResources
+ * English resources.
+ *
+ * @param lng
+ * Language.
+ *
+ * @param lngResources
+ * Language resources.
+ *
+ * @param parent
+ * Parent key name (set recursively).
+ */
+export function i18nAssertValidResources(enResources: object, lng: string, lngResources: object, parent?: string): void {
+    const enResourcesMap = new Map<string, object>(Object.entries(enResources));
+    const lngResourcesMap = new Map<string, object>(Object.entries(lngResources));
+
+    const isLocale = lng.includes("-");
+
+    for (const [enKey, enValue] of enResourcesMap) {
+        const lngValue = lngResourcesMap.get(enKey);
+
+        if (lngValue !== undefined) {
+            const enValueType = typeof enValue;
+            const lngValueType = typeof lngValue;
+
+            if (lngValueType !== enValueType) {
+                throw new Error(`Invalid value type ${lngValueType} for key ${parent === undefined ? "" : `${parent}.`}${enKey} in ${lng} resources`);
+            }
+
+            if (enValueType === "object") {
+                i18nAssertValidResources(enValue, lng, lngValue, `${parent === undefined ? "" : `${parent}.`}${enKey}`);
+            }
+        // Locale falls back to raw language so ignore if missing.
+        } else if (!isLocale) {
+            throw new Error(`Missing key ${parent === undefined ? "" : `${parent}.`}${enKey} from ${lng} resources`);
+        }
+    }
+
+    for (const [lngKey] of lngResourcesMap) {
+        if (!enResourcesMap.has(lngKey)) {
+            throw new Error(`Extraneous key ${parent === undefined ? "" : `${parent}.`}${lngKey} in ${lng} resources`);
+        }
     }
 }
