@@ -27,7 +27,7 @@ jobs:
           npm ci
 
       - name: Build and publish core
-        uses: ../node_modules/@aidc-toolkit/dev/.github/actions/build-publish
+        uses: ./node_modules/@aidc-toolkit/dev/.github/actions/build-publish
         with:
           project: core
           no_test: true
