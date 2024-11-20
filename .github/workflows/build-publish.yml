@@ -17,6 +17,7 @@ jobs:
         uses: aidc-toolkit/dev/.github/actions/build-publish@main
         with:
           project: core
+          unlink_projects: dev
           node_version: ${{ secrets.NODE_VERSION }}
           node_auth_token: ${{ secrets.NODE_AUTH_TOKEN }}
           no_test: true
