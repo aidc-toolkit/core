@@ -1,4 +1,4 @@
-import i18next from "i18next";
+import i18next, { type Module, type Newable } from "i18next";
 import I18nextBrowserLanguageDetector from "i18next-browser-languagedetector";
 import I18nextCLILanguageDetector from "i18next-cli-language-detector";
 
@@ -57,11 +57,11 @@ export async function i18nInit(environment: I18NEnvironment, debug = false): Pro
     if (pendingResourceBundles !== undefined) {
         initialized = true;
 
-        let module: object;
+        let module: Newable<Module>;
 
         switch (environment) {
             case I18NEnvironment.CLI:
-                module = I18nextCLILanguageDetector;
+                module = I18nextCLILanguageDetector.default;
                 break;
 
             case I18NEnvironment.Browser:
@@ -77,13 +77,13 @@ export async function i18nInit(environment: I18NEnvironment, debug = false): Pro
         // No need to manage pending resource bundles past this point.
         pendingResourceBundles = undefined;
 
-        await i18next.use(module as never).init({
+        await i18next.use(module).init({
             fallbackLng: "en",
             debug,
             resources: {}
         }).then(() => {
             // Add toLowerCase function.
-            i18next.services.formatter?.add("toLowerCase", value => (value as string).toLowerCase());
+            i18next.services.formatter?.add("toLowerCase", value => typeof value === "string" ? value.toLowerCase() : String(value));
 
             // Add pending resource bundles.
             for (const initResourceBundle of initResourceBundles) {
