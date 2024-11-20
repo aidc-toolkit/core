@@ -1,4 +1,4 @@
-import i18next, { type Module, type Newable } from "i18next";
+import i18next, { type LanguageDetectorModule } from "i18next";
 import I18nextBrowserLanguageDetector from "i18next-browser-languagedetector";
 import I18nextCLILanguageDetector from "i18next-cli-language-detector";
 
@@ -56,12 +56,13 @@ export async function i18nInit(environment: I18NEnvironment, debug = false): Pro
     // Skip if initialization is not pending.
     if (pendingResourceBundles !== undefined) {
         initialized = true;
-
-        let module: Newable<Module>;
+        
+        let module: Parameters<typeof i18next.use>[0];
 
         switch (environment) {
             case I18NEnvironment.CLI:
-                module = I18nextCLILanguageDetector.default;
+                // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion -- Pending resolution of https://github.com/neet/i18next-cli-language-detector/issues/281.
+                module = I18nextCLILanguageDetector as unknown as LanguageDetectorModule;
                 break;
 
             case I18NEnvironment.Browser:
