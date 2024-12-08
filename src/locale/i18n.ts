@@ -39,6 +39,20 @@ export enum I18NEnvironment {
 }
 
 /**
+ * Convert a string to lower case, skipping words that are all upper case.
+ *
+ * @param s
+ * String.
+ *
+ * @returns
+ * Lower case string.
+ */
+function toLowerCase(s: string): string {
+    // Words with no lower case letters are preserved as they are likely mnemonics.
+    return s.split(" ").map(word => /[a-z]/.test(word) ? word.toLowerCase() : word).join(" ");
+}
+
+/**
  * Initialize internationalization.
  *
  * @param environment
@@ -84,7 +98,7 @@ export async function i18nInit(environment: I18NEnvironment, debug = false): Pro
             resources: {}
         }).then(() => {
             // Add toLowerCase function.
-            i18next.services.formatter?.add("toLowerCase", value => typeof value === "string" ? value.toLowerCase() : String(value));
+            i18next.services.formatter?.add("toLowerCase", value => typeof value === "string" ? toLowerCase(value) : String(value));
 
             // Add pending resource bundles.
             for (const initResourceBundle of initResourceBundles) {
