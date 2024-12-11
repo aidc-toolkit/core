@@ -75,7 +75,8 @@ export async function i18nInit(environment: I18NEnvironment, debug = false): Pro
 
         switch (environment) {
             case I18NEnvironment.CLI:
-                // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion -- Pending resolution of https://github.com/neet/i18next-cli-language-detector/issues/281.
+                // TODO Refactor when https://github.com/neet/i18next-cli-language-detector/issues/281 resolved.
+                // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion -- Per above.
                 module = I18nextCLILanguageDetector as unknown as LanguageDetectorModule;
                 break;
 
