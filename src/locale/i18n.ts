@@ -1,22 +1,6 @@
-import i18next, { type LanguageDetectorModule } from "i18next";
+import type { i18n, LanguageDetectorModule, Resource } from "i18next";
 import I18nextBrowserLanguageDetector from "i18next-browser-languagedetector";
 import I18nextCLILanguageDetector from "i18next-cli-language-detector";
-
-export default i18next;
-
-/**
- * Internal type to maintain resource bundles added before initialization.
- */
-interface ResourceBundle {
-    lng: string;
-    ns: string;
-    resources: object;
-}
-
-/**
- * Internal array to maintain resource bundles added before initialization.
- */
-let pendingResourceBundles: ResourceBundle[] | undefined = [];
 
 /**
  * Internationalization operating environment.
@@ -36,106 +20,6 @@ export enum I18NEnvironment {
      * Web browser.
      */
     Browser
-}
-
-/**
- * Convert a string to lower case, skipping words that are all upper case.
- *
- * @param s
- * String.
- *
- * @returns
- * Lower case string.
- */
-function toLowerCase(s: string): string {
-    // Words with no lower case letters are preserved as they are likely mnemonics.
-    return s.split(" ").map(word => /[a-z]/.test(word) ? word.toLowerCase() : word).join(" ");
-}
-
-/**
- * Initialize internationalization.
- *
- * @param environment
- * Environment in which the application is running.
- *
- * @param debug
- * Debug setting.
- *
- * @returns
- * True if initialization was completed, false if skipped (already initialized).
- */
-export async function i18nInit(environment: I18NEnvironment, debug = false): Promise<boolean> {
-    let initialized: boolean;
-
-    // Skip if initialization is not pending.
-    if (pendingResourceBundles !== undefined) {
-        initialized = true;
-        
-        let module: Parameters<typeof i18next.use>[0];
-
-        switch (environment) {
-            case I18NEnvironment.CLI:
-                // TODO Refactor when https://github.com/neet/i18next-cli-language-detector/issues/281 resolved.
-                // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion -- Per above.
-                module = I18nextCLILanguageDetector as unknown as LanguageDetectorModule;
-                break;
-
-            case I18NEnvironment.Browser:
-                module = I18nextBrowserLanguageDetector;
-                break;
-
-            default:
-                throw new Error("Not supported");
-        }
-
-        const initResourceBundles = pendingResourceBundles;
-
-        // No need to manage pending resource bundles past this point.
-        pendingResourceBundles = undefined;
-
-        await i18next.use(module).init({
-            fallbackLng: "en",
-            debug,
-            resources: {}
-        }).then(() => {
-            // Add toLowerCase function.
-            i18next.services.formatter?.add("toLowerCase", value => typeof value === "string" ? toLowerCase(value) : String(value));
-
-            // Add pending resource bundles.
-            for (const initResourceBundle of initResourceBundles) {
-                i18nAddResourceBundle(initResourceBundle.lng, initResourceBundle.ns, initResourceBundle.resources);
-            }
-        });
-    } else {
-        initialized = false;
-    }
-
-    return initialized;
-}
-
-/**
- * Add a resource bundle.
- *
- * @param lng
- * Language.
- *
- * @param ns
- * Namespace.
- *
- * @param resources
- * Resources.
- */
-export function i18nAddResourceBundle(lng: string, ns: string, resources: object): void {
-    if (pendingResourceBundles !== undefined) {
-        pendingResourceBundles.push({
-            lng,
-            ns,
-            resources
-        });
-    } else {
-        // Already initialized; add resource bundle directly.
-        i18next.addResourceBundle(lng, ns, resources);
-    }
 }
 
 /**
@@ -173,7 +57,7 @@ export function i18nAssertValidResources(enResources: object, lng: string, lngRe
             if (enValueType === "object") {
                 i18nAssertValidResources(enValue, lng, lngValue, `${parent === undefined ? "" : `${parent}.`}${enKey}`);
             }
-        // Locale falls back to raw language so ignore if missing.
+            // Locale falls back to raw language so ignore if missing.
         } else if (!isLocale) {
             throw new Error(`Missing key ${parent === undefined ? "" : `${parent}.`}${enKey} from ${lng} resources`);
         }
@@ -183,5 +67,92 @@ export function i18nAssertValidResources(enResources: object, lng: string, lngRe
         if (!enResourcesMap.has(lngKey)) {
             throw new Error(`Extraneous key ${parent === undefined ? "" : `${parent}.`}${lngKey} in ${lng} resources`);
         }
+    }
+}
+
+/**
+ * Convert a string to lower case, skipping words that are all upper case.
+ *
+ * @param s
+ * String.
+ *
+ * @returns
+ * Lower case string.
+ */
+function toLowerCase(s: string): string {
+    // Words with no lower case letters are preserved as they are likely mnemonics.
+    return s.split(" ").map(word => /[a-z]/.test(word) ? word.toLowerCase() : word).join(" ");
+}
+
+/**
+ * Initialize internationalization.
+ *
+ * @param i18next
+ * Internationalization object. As multiple objects exists, this parameter represents the one for the module for which
+ * internationalization is being initialized.
+ *
+ * @param environment
+ * Environment in which the application is running.
+ *
+ * @param debug
+ * Debug setting.
+ *
+ * @param defaultNS
+ * Default namespace.
+ *
+ * @param resources
+ * Resources.
+ *
+ * @returns
+ * Void promise.
+ */
+export async function i18nCoreInit(i18next: i18n, environment: I18NEnvironment, debug: boolean, defaultNS: string, ...resources: Resource[]): Promise<void> {
+    // Initialization may be called more than once.
+    if (!i18next.isInitialized) {
+        const mergedResource: Resource = {};
+
+        // Merge resources.
+        for (const resource of resources) {
+            // Merge languages.
+            for (const [language, resourceLanguage] of Object.entries(resource)) {
+                if (!(language in mergedResource)) {
+                    mergedResource[language] = {};
+                }
+
+                const mergedResourceLanguage = mergedResource[language];
+
+                // Merge namespaces.
+                for (const [namespace, resourceKey] of Object.entries(resourceLanguage)) {
+                    mergedResourceLanguage[namespace] = resourceKey;
+                }
+            }
+        }
+
+        let module: Parameters<typeof i18next.use>[0];
+
+        switch (environment) {
+            case I18NEnvironment.CLI:
+                // TODO Refactor when https://github.com/neet/i18next-cli-language-detector/issues/281 resolved.
+                // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion -- Per above.
+                module = I18nextCLILanguageDetector as unknown as LanguageDetectorModule;
+                break;
+
+            case I18NEnvironment.Browser:
+                module = I18nextBrowserLanguageDetector;
+                break;
+
+            default:
+                throw new Error("Not supported");
+        }
+
+        await i18next.use(module).init({
+            debug,
+            resources: mergedResource,
+            fallbackLng: "en",
+            defaultNS
+        }).then(() => {
+            // Add toLowerCase function.
+            i18next.services.formatter?.add("toLowerCase", value => typeof value === "string" ? toLowerCase(value) : String(value));
+        });
     }
 }
