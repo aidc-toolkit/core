@@ -1,6 +1,6 @@
 {
   "name": "@aidc-toolkit/core",
-  "version": "0.9.10-beta",
+  "version": "0.9.11-beta",
   "description": "Core functionality for AIDC Toolkit",
   "type": "module",
   "main": "dist/index.js",
@@ -24,7 +24,7 @@
     "build-doc": "npm run build-dist && tsc src/index.ts --outDir dist --target esnext --moduleResolution nodenext --module nodenext --emitDeclarationOnly --declaration --declarationMap"
   },
   "devDependencies": {
-    "@aidc-toolkit/dev": "^0.9.10-beta",
+    "@aidc-toolkit/dev": "^0.9.11-beta",
     "eslint": "^9.18.0",
     "ts-node": "^10.9.2",
     "tsup": "^8.3.5",
