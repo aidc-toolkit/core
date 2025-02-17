@@ -28,7 +28,7 @@
     "publish-dev": "publish-dev"
   },
   "devDependencies": {
-    "@aidc-toolkit/dev": "^0.9.14-beta"
+    "@aidc-toolkit/dev": "alpha"
   },
   "dependencies": {
     "i18next": "^24.2.2",
