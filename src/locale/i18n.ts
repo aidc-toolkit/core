@@ -3,6 +3,13 @@ import I18nextBrowserLanguageDetector from "i18next-browser-languagedetector";
 import I18nextCLILanguageDetector from "i18next-cli-language-detector";
 
 /**
+ * Locale strings type for generic manipulation.
+ */
+export interface LocaleStrings {
+    [key: string]: LocaleStrings | string;
+}
+
+/**
  * Internationalization operating environment.
  */
 export enum I18NEnvironment {
