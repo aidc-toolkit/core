@@ -1,6 +1,6 @@
 {
   "name": "@aidc-toolkit/core",
-  "version": "0.9.15-beta",
+  "version": "0.9.16-beta",
   "description": "Core functionality for AIDC Toolkit",
   "type": "module",
   "main": "dist/index.js",
@@ -28,7 +28,7 @@
     "publish-dev": "publish-dev"
   },
   "devDependencies": {
-    "@aidc-toolkit/dev": "alpha"
+    "@aidc-toolkit/dev": "^0.9.16-beta"
   },
   "dependencies": {
     "i18next": "^24.2.2",
