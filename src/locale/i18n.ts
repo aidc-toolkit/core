@@ -12,7 +12,7 @@ export interface LocaleStrings {
 /**
  * Internationalization operating environment.
  */
-export enum I18NEnvironment {
+export enum I18nEnvironment {
     /**
      * Command-line interface (e.g., unit tests).
      */
@@ -113,7 +113,7 @@ function toLowerCase(s: string): string {
  * @returns
  * Void promise.
  */
-export async function i18nCoreInit(i18next: i18n, environment: I18NEnvironment, debug: boolean, defaultNS: string, ...resources: Resource[]): Promise<void> {
+export async function i18nCoreInit(i18next: i18n, environment: I18nEnvironment, debug: boolean, defaultNS: string, ...resources: Resource[]): Promise<void> {
     // Initialization may be called more than once.
     if (!i18next.isInitialized) {
         const mergedResource: Resource = {};
@@ -138,13 +138,13 @@ export async function i18nCoreInit(i18next: i18n, environment: I18NEnvironment, 
         let module: Parameters<typeof i18next.use>[0];
 
         switch (environment) {
-            case I18NEnvironment.CLI:
+            case I18nEnvironment.CLI:
                 // TODO Refactor when https://github.com/neet/i18next-cli-language-detector/issues/281 resolved.
                 // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion -- Per above.
                 module = I18nextCLILanguageDetector as unknown as LanguageDetectorModule;
                 break;
 
-            case I18NEnvironment.Browser:
+            case I18nEnvironment.Browser:
                 module = I18nextBrowserLanguageDetector;
                 break;
 
