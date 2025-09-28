@@ -64,7 +64,7 @@ export function i18nAssertValidResources(enResources: object, lng: string, lngRe
             if (enValueType === "object") {
                 i18nAssertValidResources(enValue, lng, lngValue, `${parent === undefined ? "" : `${parent}.`}${enKey}`);
             }
-            // Locale falls back to raw language so ignore if missing.
+        // Locale falls back to raw language so ignore if missing.
         } else if (!isLocale) {
             throw new Error(`Missing key ${parent === undefined ? "" : `${parent}.`}${enKey} from ${lng} resources`);
         }
