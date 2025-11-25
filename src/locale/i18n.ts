@@ -10,24 +10,29 @@ export interface LocaleStrings {
 }
 
 /**
- * Internationalization operating environment.
+ * Internationalization operating environments.
  */
-export enum I18nEnvironment {
+export const I18nEnvironments = {
     /**
      * Command-line interface (e.g., unit tests).
      */
-    CLI,
+    CLI: 0,
 
     /**
      * Web server.
      */
-    Server,
+    Server: 1,
 
     /**
      * Web browser.
      */
-    Browser
-}
+    Browser: 2
+} as const;
+
+/**
+ * Internationalization operating environment.
+ */
+export type I18nEnvironment = typeof I18nEnvironments[keyof typeof I18nEnvironments];
 
 /**
  * Assert that language resources are a type match for English (default) resources.
@@ -138,13 +143,13 @@ export async function i18nCoreInit(i18next: i18n, environment: I18nEnvironment, 
         let module: Parameters<typeof i18next.use>[0];
 
         switch (environment) {
-            case I18nEnvironment.CLI:
+            case I18nEnvironments.CLI:
                 // TODO Refactor when https://github.com/neet/i18next-cli-language-detector/issues/281 resolved.
                 // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion -- Per above.
                 module = I18nextCLILanguageDetector as unknown as LanguageDetectorModule;
                 break;
 
-            case I18nEnvironment.Browser:
+            case I18nEnvironments.Browser:
                 module = I18nextBrowserLanguageDetector;
                 break;
 
