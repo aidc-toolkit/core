@@ -5,8 +5,8 @@ import I18nextCLILanguageDetector from "i18next-cli-language-detector";
 /**
  * Locale strings type for generic manipulation.
  */
-export interface LocaleStrings {
-    [key: string]: LocaleStrings | string;
+export interface LocaleResources {
+    [key: string]: LocaleResources | string;
 }
 
 /**
