@@ -35,6 +35,29 @@ export const I18nEnvironments = {
 export type I18nEnvironment = typeof I18nEnvironments[keyof typeof I18nEnvironments];
 
 /**
+ * Parse parameter names in a resource string.
+ *
+ * @param s
+ * Resource string.
+ *
+ * @returns
+ * Array of parameter names.
+ */
+function parseParameterNames(s: string): string[] {
+    const parameterRegExp = /\{\{.+?}}/g;
+
+    const parameterNames: string[] = [];
+
+    let match: RegExpExecArray | null;
+
+    while ((match = parameterRegExp.exec(s)) !== null) {
+        parameterNames.push(match[1]);
+    }
+
+    return parameterNames;
+}
+
+/**
  * Assert that language resources are a type match for English (default) resources.
  *
  * @param enResources
@@ -69,23 +92,21 @@ export function i18nAssertValidResources(enResources: object, lng: string, lngRe
             }
 
             if (enValueType === "string") {
-                const regExp = /\{\{.+?}}/g;
+                // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion -- Value is known to be string.
+                const enParameterNames = parseParameterNames(enValue as unknown as string);
 
                 // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion -- Value is known to be string.
-                const enParameters = Array.from((enValue as unknown as string).match(regExp) ?? []);
+                const lngParameterNames = parseParameterNames(lngValue as unknown as string);
 
-                // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion -- Value is known to be string.
-                const lngParameters = Array.from((lngValue as unknown as string).match(regExp) ?? []);
-
-                for (const enParameter of enParameters) {
-                    if (!lngParameters.includes(enParameter)) {
-                        throw new Error(`Missing parameter ${enParameter} for key ${enFullKey} in ${lng} resources`);
+                for (const enParameterName of enParameterNames) {
+                    if (!lngParameterNames.includes(enParameterName)) {
+                        throw new Error(`Missing parameter ${enParameterName} for key ${enFullKey} in ${lng} resources`);
                     }
                 }
 
-                for (const lngParameter of lngParameters) {
-                    if (!enParameters.includes(lngParameter)) {
-                        throw new Error(`Extraneous parameter ${lngParameter} for key ${enFullKey} in ${lng} resources`);
+                for (const lngParameterName of lngParameterNames) {
+                    if (!enParameterNames.includes(lngParameterName)) {
+                        throw new Error(`Extraneous parameter ${lngParameterName} for key ${enFullKey} in ${lng} resources`);
                     }
                 }
             } else if (enValueType === "object") {
