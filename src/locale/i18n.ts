@@ -56,6 +56,8 @@ export function i18nAssertValidResources(enResources: object, lng: string, lngRe
     const isLocale = lng.includes("-");
 
     for (const [enKey, enValue] of enResourcesMap) {
+        const enFullKey = `${parent === undefined ? "" : `${parent}.`}${enKey}`;
+
         const lngValue = lngResourcesMap.get(enKey);
 
         if (lngValue !== undefined) {
@@ -63,15 +65,35 @@ export function i18nAssertValidResources(enResources: object, lng: string, lngRe
             const lngValueType = typeof lngValue;
 
             if (lngValueType !== enValueType) {
-                throw new Error(`Invalid value type ${lngValueType} for key ${parent === undefined ? "" : `${parent}.`}${enKey} in ${lng} resources`);
+                throw new Error(`Mismatched value type ${lngValueType} for key ${enFullKey} in ${lng} resources (expected ${enValueType})`);
             }
 
-            if (enValueType === "object") {
+            if (enValueType === "string") {
+                const regExp = /\{\{.+?}}/g;
+
+                // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion -- Value is known to be string.
+                const enParameters = Array.from((enValue as unknown as string).match(regExp) ?? []);
+
+                // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion -- Value is known to be string.
+                const lngParameters = Array.from((lngValue as unknown as string).match(regExp) ?? []);
+
+                for (const enParameter of enParameters) {
+                    if (!lngParameters.includes(enParameter)) {
+                        throw new Error(`Missing parameter ${enParameter} for key ${enFullKey} in ${lng} resources`);
+                    }
+                }
+
+                for (const lngParameter of lngParameters) {
+                    if (!enParameters.includes(lngParameter)) {
+                        throw new Error(`Extraneous parameter ${lngParameter} for key ${enFullKey} in ${lng} resources`);
+                    }
+                }
+            } else if (enValueType === "object") {
                 i18nAssertValidResources(enValue, lng, lngValue, `${parent === undefined ? "" : `${parent}.`}${enKey}`);
             }
         // Locale falls back to raw language so ignore if missing.
         } else if (!isLocale) {
-            throw new Error(`Missing key ${parent === undefined ? "" : `${parent}.`}${enKey} from ${lng} resources`);
+            throw new Error(`Missing key ${enFullKey} in ${lng} resources`);
         }
     }
 
