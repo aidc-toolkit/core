@@ -27,7 +27,7 @@ All AIDC Toolkit packages require internationalization. The localization functio
 Packages install their resources as follows in `i18n.ts` or similar:
 
 ```typescript
-import { i18nAssertValidResources, i18nCoreInit, type I18nEnvironment } from "@aidc-toolkit/core";
+import { i18nCoreInit, type I18nEnvironment } from "@aidc-toolkit/core";
 import { dependency1Resources, i18nDependency1Init } from "@aidc-toolkit/dependency1";
 import { dependency2Resources, i18nDependency2Init } from "@aidc-toolkit/dependency2";
 import i18next, { type i18n, type Resource } from "i18next";
@@ -40,8 +40,6 @@ export const packageNS = "aidct_package";
  * Locale strings type is extracted from the English locale strings object.
  */
 export type PackageLocaleStrings = typeof enLocaleStrings;
-
-i18nAssertValidResources(enLocaleStrings, "fr", frLocaleStrings);
 
 /**
  * Package resources.
