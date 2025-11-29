@@ -14,4 +14,4 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-export * from "./locale/i18n.js";
+export * from "./locale/i18n";

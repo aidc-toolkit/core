@@ -31,8 +31,8 @@ import { i18nCoreInit, type I18nEnvironment } from "@aidc-toolkit/core";
 import { dependency1Resources, i18nDependency1Init } from "@aidc-toolkit/dependency1";
 import { dependency2Resources, i18nDependency2Init } from "@aidc-toolkit/dependency2";
 import i18next, { type i18n, type Resource } from "i18next";
-import { localeStrings as enLocaleStrings } from "./en/locale-strings.js";
-import { localeStrings as frLocaleStrings } from "./fr/locale-strings.js";
+import { localeStrings as enLocaleStrings } from "./en/locale-strings";
+import { localeStrings as frLocaleStrings } from "./fr/locale-strings";
 
 export const packageNS = "aidct_package";
 
@@ -80,7 +80,7 @@ The resource types are declared in `i18next.d.ts` or similar:
 ```typescript
 import type { Dependency1LocaleStrings } from "@aidc-toolkit/dependency1";
 import type { Dependency2LocaleStrings } from "@aidc-toolkit/dependency2";
-import type { PackageLocaleStrings } from "./i18n.js";
+import type { PackageLocaleStrings } from "./i18n";
 
 /**
  * Internationalization module.
@@ -123,7 +123,7 @@ Initializing internationalization for a web browser requires awaiting the fulfil
 ```typescript jsx
 import { I18nEnvironment } from "@aidc-toolkit/core";
 import { type ReactElement, type ReactNode, useEffect, useState } from "react";
-import { i18nPackageInit, i18nextPackage } from "./locale/i18n.ts";
+import { i18nPackageInit, i18nextPackage } from "./locale/i18n";
 
 /**
  * I18n wrapper properties.
@@ -167,8 +167,8 @@ The component would then wrap the application as follows:
 
 ```typescript jsx
 import { type ReactElement, StrictMode } from "react";
-import { App } from "./App.tsx";
-import { I18n } from "./I18n.tsx";
+import { App } from "./App";
+import { I18n } from "./I18n";
 
 /**
  * Index.
