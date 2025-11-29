@@ -3,7 +3,5 @@
   "extends": [
     "@aidc-toolkit/dev/typedoc.json"
   ],
-  "name": "Core",
-  "tsconfig": "node_modules/@aidc-toolkit/dev/tsconfig-build-dev.json",
-  "gitRevision": "main"
+  "name": "Core"
 }
