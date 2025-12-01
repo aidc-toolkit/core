@@ -110,13 +110,13 @@ declare module "i18next" {
 
 Support is available for the following environments:
 
-* [Command-line interface](#command-line-interface)
-    * Unit tests
-    * Batch applications
-* Web server - *NOT YET IMPLEMENTED*
-* [Web browser](#web-browser)
+- [Command-line interface](#command-line-interface)
+  - Unit tests
+  - Batch applications
+- Web server - **NOT YET IMPLEMENTED**
+- [Web browser](#web-browser)
 
-### Command-line interface
+### Command-Line Interface
 
 Initializing internationalization for a command-line interface application is straightforward:
 
@@ -124,7 +124,7 @@ Initializing internationalization for a command-line interface application is st
 await i18nPackageInit(I18nEnvironment.CLI);
 ```
 
-### Web browser
+### Web Browser
 
 Initializing internationalization for a web browser requires awaiting the fulfillment of the `Promise` returned by the call to the initialization function before rendering any content. For example, in the React framework, this may be accomplished with a component like this:
 
