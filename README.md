@@ -16,6 +16,14 @@ Unless required by applicable law or agreed to in writing, software distributed 
 
 The AIDC Toolkit `core` package contains artefacts to support other AIDC Toolkit packages; it does not itself provide any of the functionality of the AIDC Toolkit. It is a required dependency for all AIDC Toolkit packages.
 
+## Types
+
+Generic types that go beyond TypeScript's utility types are defined here. The types are designed to provide even greater type safety.
+
+## Logger
+
+This is a simple wrapper around [tslog](https://tslog.js.org) to support command-line applications in the AIDC Toolkit build process.
+
 ## Internationalization
 
 All AIDC Toolkit packages require internationalization. The localization functionality in this package, built on the robust and popular [`i18next`](https://i18next.com) package, simplifies initialization and allows packages to share a common internationalization engine. Each package, up to and including the client application, is responsible for initializing internationalization for each of the AIDC Toolkit packages on which it depends.
