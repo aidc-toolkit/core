@@ -14,9 +14,14 @@ export const LogLevels = {
 } as const;
 
 /**
+ * Log level key.
+ */
+export type LogLevelKey = keyof typeof LogLevels;
+
+/**
  * Log level.
  */
-export type LogLevel = typeof LogLevels[keyof typeof LogLevels];
+export type LogLevel = typeof LogLevels[LogLevelKey];
 
 /**
  * Get a simple logger with an optional log level.
@@ -33,7 +38,7 @@ export function getLogger(logLevel?: string | number): Logger<unknown> {
     if (typeof logLevel === "string") {
         if (logLevel in LogLevels) {
             // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion -- String exists as a key.
-            minLevel = LogLevels[logLevel as keyof typeof LogLevels];
+            minLevel = LogLevels[logLevel as LogLevelKey];
         } else {
             throw new Error(`Unknown log level ${logLevel}`);
         }

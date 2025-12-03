@@ -30,9 +30,14 @@ export const I18nEnvironments = {
 } as const;
 
 /**
+ * Internationalization operating environment key.
+ */
+export type I18nEnvironmentKey = keyof typeof I18nEnvironments;
+
+/**
  * Internationalization operating environment.
  */
-export type I18nEnvironment = typeof I18nEnvironments[keyof typeof I18nEnvironments];
+export type I18nEnvironment = typeof I18nEnvironments[I18nEnvironmentKey];
 
 /**
  * Convert a string to lower case, skipping words that are all upper case.
