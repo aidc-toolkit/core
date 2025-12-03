@@ -22,7 +22,7 @@ export type LogLevel = typeof LogLevels[keyof typeof LogLevels];
  * Get a simple logger with an optional log level.
  *
  * @param logLevel
- * Log level as enumeration value or string if any.
+ * Log level as enumeration value or string.
  *
  * @returns
  * Logger.

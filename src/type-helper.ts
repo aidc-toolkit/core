@@ -1,6 +1,15 @@
 /**
  * Create an object with omitted or picked entries.
  *
+ * @template Omitting
+ * Type representation of `omitting` parameter for return type determination.
+ *
+ * @template T
+ * Object type.
+ *
+ * @template K
+ * Object key type.
+ *
  * @param omitting
  * True if omitting.
  *
@@ -21,6 +30,12 @@ function omitOrPick<Omitting extends boolean, T extends object, K extends keyof 
 /**
  * Create an object with omitted entries.
  *
+ * @template T
+ * Object type.
+ *
+ * @template K
+ * Object key type.
+ *
  * @param o
  * Object.
  *
@@ -36,6 +51,12 @@ export function omit<T extends object, K extends keyof T>(o: T, ...keys: K[]): O
 
 /**
  * Create an object with picked entries.
+ *
+ * @template T
+ * Object type.
+ *
+ * @template K
+ * Object key type.
  *
  * @param o
  * Object.
@@ -53,6 +74,15 @@ export function pick<T extends object, K extends keyof T>(o: T, ...keys: K[]): P
 /**
  * Cast a property as a more narrow type.
  *
+ * @template T
+ * Object type.
+ *
+ * @template K
+ * Object key type.
+ *
+ * @template TAsType
+ * Desired type.
+ *
  * @param o
  * Object.
  *
@@ -62,7 +92,7 @@ export function pick<T extends object, K extends keyof T>(o: T, ...keys: K[]): P
  * @returns
  * Single-key object with property cast as desired type.
  */
-export function propertyAs<TAsType extends T[K], T extends object, K extends keyof T>(o: T, key: K): Readonly<Omit<T, K> extends T ? Partial<Record<K, TAsType>> : Record<K, TAsType>> {
+export function propertyAs<T extends object, K extends keyof T, TAsType extends T[K]>(o: T, key: K): Readonly<Omit<T, K> extends T ? Partial<Record<K, TAsType>> : Record<K, TAsType>> {
     // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion -- Type is determined by condition.
     return (key in o ?
         {
@@ -70,7 +100,7 @@ export function propertyAs<TAsType extends T[K], T extends object, K extends key
             [key]: o[key] as TAsType
         } :
         {}
-    ) as ReturnType<typeof propertyAs<TAsType, T, K>>;
+    ) as ReturnType<typeof propertyAs<T, K, TAsType>>;
 }
 
 /**
@@ -82,6 +112,6 @@ export function propertyAs<TAsType extends T[K], T extends object, K extends key
  * @returns
  * True if argument is undefined or null.
  */
-export function isNullish<T>(argument: T | null | undefined): argument is null | undefined {
+export function isNullish(argument: unknown): argument is null | undefined {
     return argument === null || argument === undefined;
 }

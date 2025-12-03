@@ -1,31 +1,49 @@
 /**
  * Typed function, applicable to any function, stricter than {@link Function}.
+ *
+ * @template TFunction
+ * Function type.
  */
-export type TypedFunction<TMethod extends (...args: Parameters<TMethod>) => ReturnType<TMethod>> = (...args: Parameters<TMethod>) => ReturnType<TMethod>;
+export type TypedFunction<TFunction extends (...args: Parameters<TFunction>) => ReturnType<TFunction>> = (...args: Parameters<TFunction>) => ReturnType<TFunction>;
 
 /**
- * Typed synchronous function, applicable to any function that doesn't return a Promise.
+ * Typed synchronous function, applicable to any function that doesn't return a {@link Promise}.
+ *
+ * @template TFunction
+ * Function type.
  */
-export type TypedSyncFunction<TMethod extends TypedFunction<TMethod>> = [ReturnType<TMethod>] extends [PromiseLike<unknown>] ? never : TypedFunction<TMethod>;
+export type TypedSyncFunction<TFunction extends TypedFunction<TFunction>> = [ReturnType<TFunction>] extends [PromiseLike<unknown>] ? never : TypedFunction<TFunction>;
 
 /**
- * Determine the fundamental promised type. This is stricter than `Awaited\<Type\>` in that it requires a Promise.
+ * Determine the fundamental promised type. This is stricter than `Awaited<Type>` in that it requires a {@link Promise}.
+ *
+ * @template T
+ * Promised type.
  */
-type PromisedType<T> = [T] extends [PromiseLike<infer TPromised>] ? TPromised : never;
+export type PromisedType<T> = [T] extends [PromiseLike<infer TPromised>] ? TPromised : never;
 
 /**
- * Typed asynchronous function, applicable to any function that returns a Promise.
+ * Typed asynchronous function, applicable to any function that returns a {@link Promise}.
+ *
+ * @template TFunction
+ * Function type.
  */
 export type TypedAsyncFunction<TMethod extends (...args: Parameters<TMethod>) => PromiseLike<PromisedType<ReturnType<TMethod>>>> = (...args: Parameters<TMethod>) => Promise<PromisedType<ReturnType<TMethod>>>;
 
 /**
  * Nullishable type. Extends a type by allowing `null` and `undefined`.
+ *
+ * @template T
+ * Type.
  */
 export type Nullishable<T> = T | null | undefined;
 
 /**
  * Non-nullishable type. If T is an object type, it is spread and attributes within it are made non-nullishable.
- * Equivalent to a deep `Required\<T\>` for an object and `NonNullable\<T\>` for any other type.
+ * Equivalent to a deep `Required<T>` for an object and `NonNullable<T>` for any other type.
+ *
+ * @template T
+ * Type.
  */
 export type NonNullishable<T> = T extends object ? {
     [P in keyof T]-?: NonNullishable<T[P]>
@@ -33,12 +51,24 @@ export type NonNullishable<T> = T extends object ? {
 
 /**
  * Make some keys within a type optional.
+ *
+ * @template T
+ * Object type.
+ *
+ * @template K
+ * Object key type.
  */
 export type Optional<T, K extends keyof T> = Omit<T, K> & Partial<Pick<T, K>>;
 
 /**
  * Type to restrict property keys to those that are strings and that support a specified type.
+ *
+ * @template T
+ * Object type.
+ *
+ * @template P
+ * Object property type.
  */
-export type PropertyKeys<T, TProperty> = {
-    [K in keyof T]: K extends string ? T[K] extends TProperty ? K : never : never;
+export type PropertyKeys<T, P> = {
+    [K in keyof T]: K extends string ? T[K] extends P ? K : never : never;
 }[keyof T];
