@@ -1,5 +1,5 @@
 /**
- * Typed function, applicable to any function, stricter than {@link Function}.
+ * Typed function, applicable to any function, stricter than {@linkcode Function}.
  *
  * @template TFunction
  * Function type.
@@ -7,7 +7,7 @@
 export type TypedFunction<TFunction extends (...args: Parameters<TFunction>) => ReturnType<TFunction>> = (...args: Parameters<TFunction>) => ReturnType<TFunction>;
 
 /**
- * Typed synchronous function, applicable to any function that doesn't return a {@link Promise}.
+ * Typed synchronous function, applicable to any function that doesn't return a {@linkcode Promise}.
  *
  * @template TFunction
  * Function type.
@@ -15,7 +15,8 @@ export type TypedFunction<TFunction extends (...args: Parameters<TFunction>) => 
 export type TypedSyncFunction<TFunction extends TypedFunction<TFunction>> = [ReturnType<TFunction>] extends [PromiseLike<unknown>] ? never : TypedFunction<TFunction>;
 
 /**
- * Determine the fundamental promised type. This is stricter than `Awaited<Type>` in that it requires a {@link Promise}.
+ * Determine the fundamental promised type. This is stricter than `Awaited<Type>` in that it requires a {@linkcode
+ * Promise}.
  *
  * @template T
  * Promised type.
@@ -23,7 +24,7 @@ export type TypedSyncFunction<TFunction extends TypedFunction<TFunction>> = [Ret
 export type PromisedType<T> = [T] extends [PromiseLike<infer TPromised>] ? TPromised : never;
 
 /**
- * Typed asynchronous function, applicable to any function that returns a {@link Promise}.
+ * Typed asynchronous function, applicable to any function that returns a {@linkcode Promise}.
  *
  * @template TFunction
  * Function type.
