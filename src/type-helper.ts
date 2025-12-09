@@ -72,6 +72,32 @@ export function pick<T extends object, K extends keyof T>(o: T, ...keys: K[]): P
 }
 
 /**
+ * Create an object with entries from a narrower object excluded.
+ *
+ * @template TWide
+ * Wide object type.
+ *
+ * @template TNarrow
+ * Narrow object type.
+ *
+ * @template K
+ * Narrow object key type, subset of wide object key type.
+ *
+ * @param wide
+ * Wide object.
+ *
+ * @param narrow
+ * Narrow object.
+ *
+ * @returns
+ * Edited object.
+ */
+export function exclude<TWide extends TNarrow, TNarrow extends object, K extends keyof TNarrow>(wide: TWide, narrow: TNarrow): Omit<TWide, K> {
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion -- Keys are valid.
+    return omit(wide, ...(Object.keys(narrow) as K[]));
+}
+
+/**
  * Cast a property as a more narrow type.
  *
  * @template T
