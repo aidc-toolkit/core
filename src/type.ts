@@ -15,9 +15,10 @@ export type TypedFunction<TFunction extends (...args: Parameters<TFunction>) => 
 export type TypedSyncFunction<TFunction extends TypedFunction<TFunction>> = [ReturnType<TFunction>] extends [PromiseLike<unknown>] ? never : TypedFunction<TFunction>;
 
 /**
- * Typed constructor. A typed constructor doesn't have to be an exact match to a constructor; the only requirements are
- * that `TConstructorParameters` have compatible types (exact or wider types of the actual constructor parameters) and
- * that `TConstructorInstance` be a compatible type (exact or narrower type of the actual constructor instance).
+ * Arbitrary constructor. An arbitrary constructor doesn't have to be an exact match to a constructor; the only
+ * requirements are that `TConstructorParameters` have compatible types (exact or wider types of the actual constructor
+ * parameters) and that `TConstructorInstance` be a compatible type (exact or narrower type of the actual constructor
+ * instance).
  *
  * @template TConstructorParameters
  * Constructor parameters types.
@@ -25,10 +26,42 @@ export type TypedSyncFunction<TFunction extends TypedFunction<TFunction>> = [Ret
  * @template TConstructorInstance
  * Constructor instance type.
  */
-export type TypedConstructor<
+export type Constructor<
+    TConstructorParameters extends unknown[],
+    TConstructorInstance
+> = new (...args: TConstructorParameters) => TConstructorInstance;
+
+/**
+ * Arbitrary abstract constructor. Abstract version of {@linkcode Constructor}.
+ *
+ * @template TConstructorParameters
+ * Constructor parameters types.
+ *
+ * @template TConstructorInstance
+ * Constructor instance type.
+ */
+export type AbstractConstructor<
     TConstructorParameters extends unknown[],
     TConstructorInstance
 > = abstract new (...args: TConstructorParameters) => TConstructorInstance;
+
+/**
+ * Typed constructor, applicable to any constructor.
+ *
+ * @template TConstructor
+ * Constructor type.
+ */
+export type TypedConstructor<TConstructor extends abstract new (...args: ConstructorParameters<TConstructor>) => InstanceType<TConstructor>> =
+    Constructor<ConstructorParameters<TConstructor>, InstanceType<TConstructor>>;
+
+/**
+ * Typed abstract constructor, applicable to any constructor.
+ *
+ * @template TConstructor
+ * Constructor type.
+ */
+export type TypedAbstractConstructor<TConstructor extends abstract new (...args: ConstructorParameters<TConstructor>) => InstanceType<TConstructor>> =
+    AbstractConstructor<ConstructorParameters<TConstructor>, InstanceType<TConstructor>>;
 
 /**
  * Determine the fundamental promised type. This is stricter than `Awaited<Type>` in that it requires a {@linkcode
