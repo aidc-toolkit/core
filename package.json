@@ -26,7 +26,7 @@
     "build:doc": "npm run build:dev"
   },
   "devDependencies": {
-    "@aidc-toolkit/dev": "1.0.29-alpha.202512141455"
+    "@aidc-toolkit/dev": "1.0.29-alpha.202512141514"
   },
   "dependencies": {
     "i18next": "^25.7.2",
