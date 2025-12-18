@@ -64,6 +64,12 @@ export type TypedAbstractConstructor<TConstructor extends abstract new (...args:
     AbstractConstructor<ConstructorParameters<TConstructor>, InstanceType<TConstructor>>;
 
 /**
+ * Promisable type. Extends a type by allowing a {@linkcode Promise} of the same type. Typically used in abstract method
+ * declarations where the implementing class may or may not implement the method as asynchronous.
+ */
+export type Promisable<T> = T | Promise<T>;
+
+/**
  * Determine the fundamental promised type. This is stricter than `Awaited<Type>` in that it requires a {@linkcode
  * Promise}.
  *
