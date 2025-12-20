@@ -16,5 +16,9 @@
  */
 export type * from "./type.js";
 export * from "./type-helper.js";
+
 export * from "./logger.js";
+
+export type * from "./hyperlink.js";
+
 export * from "./locale/i18n.js";
