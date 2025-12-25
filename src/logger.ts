@@ -249,7 +249,9 @@ export class MemoryTransport<T extends object> {
             this.#notificationCallbacksMap.set(name, notificationCallback);
 
             // Notify with existing messages.
-            notificationCallback(undefined, this.#messages);
+            if (this.#messages.length !== 0) {
+                notificationCallback(undefined, this.#messages);
+            }
         }
 
         return added;
