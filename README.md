@@ -35,7 +35,7 @@ All AIDC Toolkit packages require internationalization. The localization functio
 Packages install their resources as follows in `i18n.ts` or similar:
 
 ```typescript
-import { i18nCoreInit, type I18nEnvironment } from "@aidc-toolkit/core";
+import { type I18nEnvironment, i18nFinalizeInit } from "@aidc-toolkit/core";
 import { dependency1Resources, i18nDependency1Init } from "@aidc-toolkit/dependency1";
 import { dependency2Resources, i18nDependency2Init } from "@aidc-toolkit/dependency2";
 import i18next, { type i18n, type Resource } from "i18next";
@@ -79,7 +79,7 @@ export const i18nextPackage: i18n = i18next.createInstance();
 export async function i18nPackageInit(environment: I18nEnvironment, debug = false): Promise<void> {
     await i18nDependency1Init(environment, debug);
     await i18nDependency2Init(environment, debug);
-    await i18nCoreInit(i18nextPackage, environment, debug, packageNS, dependency1Resources, dependency2Resources, packageResources);
+    await i18nFinalizeInit(i18nextPackage, environment, debug, packageNS, dependency1Resources, dependency2Resources, packageResources);
 }
 ```
 

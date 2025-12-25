@@ -1,6 +1,8 @@
-import type { i18n, LanguageDetectorModule, Resource } from "i18next";
+import i18next, { type i18n, type LanguageDetectorModule, type Resource } from "i18next";
 import I18nextBrowserLanguageDetector from "i18next-browser-languagedetector";
 import I18nextCLILanguageDetector from "i18next-cli-language-detector";
+import enLocaleResources from "./en/locale-resources.js";
+import frLocaleResources from "./fr/locale-resources.js";
 
 /**
  * Locale strings type for generic manipulation.
@@ -53,6 +55,41 @@ function toLowerCase(s: string): string {
     return s.split(" ").map(word => /[a-z]/.test(word) ? word.toLowerCase() : word).join(" ");
 }
 
+export const coreNS = "aidct_core";
+
+/**
+ * Locale resources type is extracted from the English locale resources object.
+ */
+export type CoreLocaleResources = typeof enLocaleResources;
+
+/**
+ * Core resources.
+ */
+export const coreResources: Resource = {
+    en: {
+        aidct_core: enLocaleResources
+    },
+    fr: {
+        aidct_core: frLocaleResources
+    }
+};
+
+// Explicit type is necessary because type can't be inferred without additional references.
+export const i18nextCore: i18n = i18next.createInstance();
+
+/**
+ * Initialize internationalization.
+ *
+ * @param environment
+ * Environment in which the application is running.
+ *
+ * @param debug
+ * Debug setting.
+ */
+export async function i18nCoreInit(environment: I18nEnvironment, debug = false): Promise<void> {
+    await i18nFinalizeInit(i18nextCore, environment, debug, coreNS, coreResources);
+}
+
 /**
  * Initialize internationalization.
  *
@@ -71,11 +108,8 @@ function toLowerCase(s: string): string {
  *
  * @param resources
  * Resources.
- *
- * @returns
- * Void promise.
  */
-export async function i18nCoreInit(i18next: i18n, environment: I18nEnvironment, debug: boolean, defaultNS: string, ...resources: Resource[]): Promise<void> {
+export async function i18nFinalizeInit(i18next: i18n, environment: I18nEnvironment, debug: boolean, defaultNS: string, ...resources: Resource[]): Promise<void> {
     // Initialization may be called more than once.
     if (!i18next.isInitialized) {
         const mergedResource: Resource = {};

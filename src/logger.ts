@@ -1,4 +1,5 @@
 import { type ISettingsParam, Logger } from "tslog";
+import { i18nextCore } from "./locale/i18n.js";
 
 /**
  * Log levels.
@@ -40,7 +41,9 @@ export function logLevelOf(untypedLogLevel?: string | number): LogLevel {
             // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion -- String exists as a key.
             typedLogLevel = LogLevels[untypedLogLevel as LogLevelKey];
         } else {
-            throw new Error(`Unknown log level ${untypedLogLevel}`);
+            throw new RangeError(i18nextCore.t("Logger.unknownLogLevel", {
+                logLevel: untypedLogLevel
+            }));
         }
     } else if (untypedLogLevel !== undefined) {
         // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion -- Assume that valid log level has been provided.
@@ -48,7 +51,9 @@ export function logLevelOf(untypedLogLevel?: string | number): LogLevel {
             // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion -- Valid log level has been provided.
             typedLogLevel = untypedLogLevel as LogLevel;
         } else {
-            throw new Error(`Unknown log level ${untypedLogLevel}`);
+            throw new RangeError(i18nextCore.t("Logger.unknownLogLevel", {
+                logLevel: untypedLogLevel
+            }));
         }
     } else {
         typedLogLevel = LogLevels.Info;
@@ -82,4 +87,67 @@ export function getLogger<T extends object = object>(logLevel?: string | number,
         ...settings ?? {},
         minLevel: logLevelOf(logLevel)
     }, logObj);
+}
+
+/**
+ * Get a loggable representation of a value. Values are returned unmodified, except as follows:
+ * 
+ * - Big integers are converted to whole numbers where possible, otherwise as their decimal string representations.
+ * - Arrays are limited to a maximum of ten elements. Any array longer than ten elements is replaced with the first four
+ * elements, a string of three dots, and the last four elements. This may still create large results for
+ * multidimensional arrays.
+ * - Errors are converted to objects with `name`, `message`, and `stack` properties.
+ * - Symbols are converted to their string representations.
+ * - Functions are converted to strings of the form `Function(name)`.
+ *
+ * @param value
+ * Value.
+ *
+ * @returns
+ * Loggable value.
+ */
+export function loggableValue(value: unknown): unknown {
+    let replacementValue: unknown;
+
+    switch (typeof value) {
+        case "string":
+        case "number":
+        case "boolean":
+        case "undefined":
+            replacementValue = value;
+            break;
+
+        case "bigint":
+            // Big integers not supported in JSON.
+            replacementValue = value >= Number.MIN_SAFE_INTEGER && value <= Number.MAX_SAFE_INTEGER ? Number(value) : value.toString(10);
+            break;
+
+        case "object":
+            if (value === null) {
+                replacementValue = value;
+            } else if (Array.isArray(value)) {
+                // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment -- Slicing array is necessary to keep log size down.
+                replacementValue = (value.length <= 10 ? value : [...value.slice(0, 4), "...", ...value.slice(-4)]).map(entry => loggableValue(entry));
+            } else if (value instanceof Error) {
+                replacementValue = loggableValue({
+                    name: value.name,
+                    message: value.message,
+                    stack: value.stack?.split("\n")
+                });
+            } else {
+                // Apply recursively to all properties of the object.
+                replacementValue = Object.fromEntries(Object.entries(value).map(([k, v]) => [k, loggableValue(v)]));
+            }
+            break;
+
+        case "symbol":
+            replacementValue = value.toString();
+            break;
+
+        case "function":
+            replacementValue = `Function(${value.name})`;
+            break;
+    }
+
+    return replacementValue;
 }
