@@ -151,3 +151,132 @@ export function loggableValue(value: unknown): unknown {
 
     return replacementValue;
 }
+
+/**
+ * Logger transport that stores messages in memory.
+ */
+export class MemoryTransport<T extends object> {
+    /**
+     * Notification callbacks map.
+     */
+    readonly #notificationCallbacksMap = new Map<string, (message: string | undefined, messages: readonly string[]) => void>();
+
+    /**
+     * Messages.
+     */
+    readonly #messages: string[] = [];
+
+    /**
+     * Maximum length of messages array.
+     */
+    #maximumLength = 0;
+
+    /**
+     * Length to which messages array is truncated when maximum is reached.
+     */
+    #truncateLength = 0;
+
+    /**
+     * Constructor.
+     *
+     * @param logger
+     * Logger.
+     *
+     * @param maximumLength
+     * Maximum length of messages array.
+     *
+     * @param truncateLength
+     * Length to which messages array is truncated when maximum is reached. Default is 50% of `maximumLength`, maximum
+     * is 80% of `maximumLength`.
+     */
+    constructor(logger: Logger<T>, maximumLength: number, truncateLength?: number) {
+        this.resize(maximumLength, truncateLength);
+
+        logger.attachTransport((logObject) => {
+            // Truncate logger messages if necessary.
+            if (this.#messages.length >= this.#maximumLength) {
+                this.#messages.splice(0, this.#maximumLength - this.#truncateLength);
+            }
+
+            const message = JSON.stringify(logObject);
+
+            this.#messages.push(message);
+
+            // Notify all registered callbacks.
+            for (const notificationCallback of this.#notificationCallbacksMap.values()) {
+                notificationCallback(message, this.#messages);
+            }
+        });
+    }
+
+    /**
+     * Get the messages.
+     */
+    get messages(): string[] {
+        return this.#messages;
+    }
+
+    /**
+     * Get the maximum length of messages array.
+     */
+    get maximumLength(): number {
+        return this.#maximumLength;
+    }
+
+    /**
+     * Get the length to which messages array is truncated when maximum is reached.
+     */
+    get truncateLength(): number {
+        return this.#truncateLength;
+    }
+
+    /**
+     * Add a notification callback. If one already exists under the current name, do nothing.
+     *
+     * @param name
+     * Callback name.
+     *
+     * @param notificationCallback
+     * Callback.
+     *
+     * @returns
+     * True if successfully added.
+     */
+    addNotificationCallback(name: string, notificationCallback: (message: string | undefined, messages: readonly string[]) => void): boolean {
+        const added = !this.#notificationCallbacksMap.has(name);
+
+        if (added) {
+            this.#notificationCallbacksMap.set(name, notificationCallback);
+
+            // Notify with existing messages.
+            notificationCallback(undefined, this.#messages);
+        }
+
+        return added;
+    }
+
+    /**
+     * Remove a notification callback.
+     *
+     * @param name
+     * Callback name.
+     */
+    removeNotificationCallback(name: string): void {
+        this.#notificationCallbacksMap.delete(name);
+    }
+
+    /**
+     * Resize the messages array.
+     *
+     * @param maximumLength
+     * Maximum length of messages array.
+     *
+     * @param truncateLength
+     * Length to which messages array is truncated when maximum is reached. Default is 50% of `maximumLength`, maximum
+     * is 80% of `maximumLength`.
+     */
+    resize(maximumLength: number, truncateLength?: number): void {
+        this.#maximumLength = maximumLength;
+        this.#truncateLength = truncateLength !== undefined ? Math.min(truncateLength, Math.floor(maximumLength * 0.8)) : Math.floor(maximumLength / 2);
+    }
+}
