@@ -52,7 +52,7 @@ export type I18nEnvironment = typeof I18nEnvironments[I18nEnvironmentKey];
  */
 function toLowerCase(s: string): string {
     // Words with no lower case letters are preserved as they are likely mnemonics.
-    return s.split(" ").map(word => /[a-z]/.test(word) ? word.toLowerCase() : word).join(" ");
+    return s.split(" ").map(word => /[a-z]/u.test(word) ? word.toLowerCase() : word).join(" ");
 }
 
 export const coreNS = "aidct_core";
