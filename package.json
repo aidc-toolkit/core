@@ -26,10 +26,10 @@
     "build:doc": "npm run build:dev"
   },
   "devDependencies": {
-    "@aidc-toolkit/dev": "1.0.32-alpha.202512211159"
+    "@aidc-toolkit/dev": "1.0.32-alpha.202601082147"
   },
   "dependencies": {
-    "i18next": "^25.7.3",
+    "i18next": "^25.7.4",
     "i18next-browser-languagedetector": "^8.2.0",
     "i18next-cli-language-detector": "^1.1.8",
     "tslog": "^4.10.2"
