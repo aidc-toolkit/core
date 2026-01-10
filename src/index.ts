@@ -21,8 +21,7 @@ export * from "./logger.js";
 
 export * from "./app-data.js";
 export * from "./app-data-storage.js";
-export * from "./file-app-data-storage.js";
-export * from "./browser-app-data-storage.js";
+export * from "./local-app-data-storage.js";
 export * from "./remote-app-data-storage.js";
 export * from "./cache.js";
 
