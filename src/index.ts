@@ -19,7 +19,12 @@ export * from "./type-helper.js";
 
 export * from "./logger.js";
 
+export * from "./app-data.js";
+export * from "./app-data-storage.js";
+export * from "./local-app-data-storage.js";
+export * from "./remote-app-data-storage.js";
 export * from "./cache.js";
+
 export type * from "./hyperlink.js";
 
 export * from "./locale/i18n.js";
