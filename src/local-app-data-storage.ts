@@ -8,9 +8,8 @@ import type { AppDataStorage } from "./app-data-storage.js";
  * @returns
  * Local application data storage class.
  */
-export async function LocalAppDataStorage(): Promise<new (path?: string) => AppDataStorage<boolean>> {
-    // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition -- localStorage is not defined under Node.js.
-    return globalThis.localStorage === undefined ?
-        (await import("./file-app-data-storage.js")).FileAppDataStorage :
-        (await import("./browser-app-data-storage.js")).BrowserAppDataStorage;
-}
+export const LocalAppDataStorage: Promise<new (path?: string) => AppDataStorage<boolean>> =
+    // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition -- localStorage is undefined when running under Node.js.
+    globalThis.localStorage === undefined ?
+        import("./file-app-data-storage.js").then(module => module.FileAppDataStorage) :
+        import("./browser-app-data-storage.js").then(module => module.BrowserAppDataStorage);
