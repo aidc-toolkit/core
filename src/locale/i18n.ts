@@ -1,4 +1,11 @@
-import i18next, { type i18n, type LanguageDetectorModule, type Resource } from "i18next";
+import i18next, {
+    type i18n,
+    type LanguageDetectorModule,
+    type Module,
+    type Newable,
+    type NewableModule,
+    type Resource
+} from "i18next";
 import I18nextBrowserLanguageDetector from "i18next-browser-languagedetector";
 import I18nextCLILanguageDetector from "i18next-cli-language-detector";
 import enLocaleResources from "./en/locale-resources.js";
@@ -63,9 +70,9 @@ export const coreNS = "aidct_core";
 export type CoreLocaleResources = typeof enLocaleResources;
 
 /**
- * Core resources.
+ * Core resource bundle.
  */
-export const coreResources: Resource = {
+export const coreResourceBundle: Resource = {
     en: {
         aidct_core: enLocaleResources
     },
@@ -80,21 +87,8 @@ export const i18nextCore: i18n = i18next.createInstance();
 /**
  * Initialize internationalization.
  *
- * @param environment
- * Environment in which the application is running.
- *
- * @param debug
- * Debug setting.
- */
-export async function i18nCoreInit(environment: I18nEnvironment, debug = false): Promise<void> {
-    await i18nFinalizeInit(i18nextCore, environment, debug, coreNS, coreResources);
-}
-
-/**
- * Initialize internationalization.
- *
  * @param i18next
- * Internationalization object. As multiple objects exists, this parameter represents the one for the module for which
+ * Internationalization object. As multiple objects exist, this parameter represents the one for the module for which
  * internationalization is being initialized.
  *
  * @param environment
@@ -106,56 +100,94 @@ export async function i18nCoreInit(environment: I18nEnvironment, debug = false):
  * @param defaultNS
  * Default namespace.
  *
- * @param resources
- * Resources.
+ * @param defaultResourceBundle
+ * Default resource bundle.
+ *
+ * @param i18nDependencyInits
+ * Dependency internationalization initialization functions.
+ *
+ * @returns
+ * Default resource bundle.
  */
-export async function i18nFinalizeInit(i18next: i18n, environment: I18nEnvironment, debug: boolean, defaultNS: string, ...resources: Resource[]): Promise<void> {
+export async function i18nInit(i18next: i18n, environment: I18nEnvironment, debug: boolean, defaultNS: string, defaultResourceBundle: Resource, ...i18nDependencyInits: Array<(environment: I18nEnvironment, debug: boolean) => Promise<Resource>>): Promise<Resource> {
     // Initialization may be called more than once.
     if (!i18next.isInitialized) {
-        const mergedResource: Resource = {};
+        const mergedResourceBundle: Resource = {};
 
-        // Merge resources.
-        for (const resource of resources) {
+        /**
+         * Merge a package resource bundle into the merged resource bundle.
+         *
+         * @param resourceBundle
+         * Package resource bundle.
+         */
+        function mergeResourceBundle(resourceBundle: Resource): void {
             // Merge languages.
-            for (const [language, resourceLanguage] of Object.entries(resource)) {
-                if (!(language in mergedResource)) {
-                    mergedResource[language] = {};
+            for (const [language, languageResourceBundle] of Object.entries(resourceBundle)) {
+                if (!(language in mergedResourceBundle)) {
+                    mergedResourceBundle[language] = {};
                 }
 
-                const mergedResourceLanguage = mergedResource[language];
+                const mergedLanguageResourceBundle = mergedResourceBundle[language];
 
                 // Merge namespaces.
-                for (const [namespace, resourceKey] of Object.entries(resourceLanguage)) {
-                    mergedResourceLanguage[namespace] = resourceKey;
+                for (const [namespace, resourceKey] of Object.entries(languageResourceBundle)) {
+                    mergedLanguageResourceBundle[namespace] = resourceKey;
                 }
             }
         }
 
-        let module: Parameters<typeof i18next.use>[0];
+        mergeResourceBundle(defaultResourceBundle);
 
-        switch (environment) {
-            case I18nEnvironments.CLI:
-                // TODO Refactor when https://github.com/neet/i18next-cli-language-detector/issues/281 resolved.
-                // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion -- Per above.
-                module = I18nextCLILanguageDetector as unknown as LanguageDetectorModule;
-                break;
+        // Initialize dependencies and merge their resource bundles.
+        await Promise.all(i18nDependencyInits.map(async i18nDependencyInit =>
+            i18nDependencyInit(environment, debug).then(mergeResourceBundle))
+        ).then(() => {
+            let module: Module | Newable<Module> | NewableModule<Module>;
 
-            case I18nEnvironments.Browser:
-                module = I18nextBrowserLanguageDetector;
-                break;
+            switch (environment) {
+                case I18nEnvironments.CLI:
+                    // TODO Refactor when https://github.com/neet/i18next-cli-language-detector/issues/281 resolved.
+                    // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion -- Per above.
+                    module = I18nextCLILanguageDetector as unknown as LanguageDetectorModule;
+                    break;
 
-            default:
-                throw new Error("Not supported");
-        }
+                case I18nEnvironments.Browser:
+                    module = I18nextBrowserLanguageDetector;
+                    break;
 
-        await i18next.use(module).init({
-            debug,
-            resources: mergedResource,
-            fallbackLng: "en",
-            defaultNS
-        }).then(() => {
+                default:
+                    throw new Error("Not supported");
+            }
+
+            return module;
+        }).then(async module =>
+            i18next.use(module).init({
+                debug,
+                resources: mergedResourceBundle,
+                fallbackLng: "en",
+                defaultNS
+            })
+        ).then(() => {
             // Add toLowerCase function.
             i18next.services.formatter?.add("toLowerCase", value => typeof value === "string" ? toLowerCase(value) : String(value));
         });
     }
+
+    return defaultResourceBundle;
+}
+
+/**
+ * Initialize internationalization.
+ *
+ * @param environment
+ * Environment in which the application is running.
+ *
+ * @param debug
+ * Debug setting.
+ *
+ * @returns
+ * Core resource bundle.
+ */
+export async function i18nCoreInit(environment: I18nEnvironment, debug = false): Promise<Resource> {
+    return i18nInit(i18nextCore, environment, debug, coreNS, coreResourceBundle);
 }
