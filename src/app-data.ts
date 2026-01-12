@@ -3,7 +3,7 @@ import { fromByteArray, toByteArray } from "base64-js";
 /**
  * Application data.
  */
-export type AppData = string | number | boolean | Date | Uint8Array | object;
+export type AppData = string | number | boolean | object;
 
 /**
  * Decode application data from an encoded string.
@@ -56,22 +56,22 @@ export function decodeAppData(stringData: string): AppData | undefined {
 /**
  * Encode an object to a format suitable for storage.
  *
- * @param data
+ * @param o
  * Object.
  *
  * @returns
  * Object suitable for storage with date/time and binary types encoded as strings.
  */
-function encodeObject(data: object): object | string {
+function encodeObject(o: object): object | string {
     let mappedData: object | string;
 
-    if (data instanceof Date) {
-        mappedData = `dateTime:${data.toISOString()}`;
-    } else if (data instanceof Uint8Array) {
-        mappedData = `binary:${fromByteArray(data)}`;
+    // Encode date/time and binary array as string and pass through other values unmodified.
+    if (o instanceof Date) {
+        mappedData = `dateTime:${o.toISOString()}`;
+    } else if (o instanceof Uint8Array) {
+        mappedData = `binary:${fromByteArray(o)}`;
     } else {
-        mappedData = Object.fromEntries(Object.entries(data).map(([key, value]: [string, unknown]) =>
-            // Encode date/time and binary array as string and pass through other values unmodified.
+        mappedData = Object.fromEntries(Object.entries(o).map(([key, value]: [string, unknown]) =>
             [key, typeof value === "object" && value !== null ? encodeObject(value) : value]
         ));
     }
