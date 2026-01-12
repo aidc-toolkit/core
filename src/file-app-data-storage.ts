@@ -19,40 +19,30 @@ export class FileAppDataStorage extends AppDataStorage<true> {
     /**
      * @inheritDoc
      */
-    protected override doRead(key: string, asBinary: boolean | undefined): string | Uint8Array | undefined {
-        let data: string | Uint8Array | undefined;
-
-        try {
-            const buffer = fs.readFileSync(key);
-
-            data = asBinary === true ? buffer : buffer.toString();
-        } catch {
-            data = undefined;
-        }
-
-        return data;
+    protected override async doRead(key: string, asBinary: boolean | undefined): Promise<string | Uint8Array | undefined> {
+        return fs.promises.readFile(key).then(buffer =>
+            asBinary === true ? buffer : buffer.toString()
+        ).catch(() =>
+            undefined
+        );
     }
 
     /**
      * @inheritDoc
      */
-    protected override doWrite(key: string, data: string | Uint8Array): void {
-        const directory = path.dirname(key);
-
-        if (!fs.existsSync(directory)) {
-            fs.mkdirSync(directory, {
-                recursive: true
-            });
-        }
-
-        fs.writeFileSync(key, data);
+    protected override async doWrite(key: string, data: string | Uint8Array): Promise<void> {
+        return fs.promises.mkdir(path.dirname(key), {
+            recursive: true
+        }).then(async () =>
+            fs.promises.writeFile(key, data)
+        );
     }
 
     /**
      * @inheritDoc
      */
-    protected override doDelete(key: string): void {
-        fs.rmSync(key, {
+    protected override async doDelete(key: string): Promise<void> {
+        return fs.promises.rm(key, {
             force: true
         });
     }
