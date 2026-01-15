@@ -132,82 +132,28 @@ await i18nPackageInit(I18nEnvironment.CLI);
 
 ### Web Browser
 
-Initializing internationalization for a web browser requires awaiting the fulfillment of the `Promise` returned by the call to the initialization function before rendering any content. For example, in the React framework, this may be accomplished with a component like this:
+Initializing internationalization for a web browser requires awaiting the fulfillment of the `Promise` returned by the call to the initialization function before rendering any content. For example, in the React framework, this would be done before creating the root:
 
 ```typescript jsx
 import { I18nEnvironments } from "@aidc-toolkit/core";
-import { type ReactElement, type ReactNode, useEffect, useState } from "react";
+import { StrictMode } from "react";
+import { createRoot } from "react-dom/client";
+import { App } from "./App.jsx";
 import { i18nPackageInit, i18nextPackage } from "./locale/i18n.js";
 
-/**
- * I18n wrapper properties.
- */
-export interface I18nProperties {
-  /**
-   * Post-initialization callback.
-   */
-  readonly postInitialization?: () => void;
+i18nPackageInit(I18nEnvironments.Browser).then(() => {
+    // Set the page title.
+    document.title = i18nextPackage.t("App.title");
 
-  /**
-   * Children.
-   */
-  readonly children?: ReactNode;
-}
-
-/**
- * I18n wrapper. Ensures initialization of internationalization regardless of entry point.
- *
- * @param properties
- * Properties.
- *
- * @returns
- * React element.
- */
-export function I18n(properties: I18nProperties): ReactElement {
-  const [isI18nInitialized, setIsI18nInitialized] = useState<boolean>(i18nextPackage.isInitialized);
-
-  useEffect(() => {
-    if (!isI18nInitialized) {
-      i18nPackageInit(I18nEnvironments.Browser).then(() => {
-        // Force refresh.
-        setIsI18nInitialized(true);
-
-        if (properties.postInitialization !== undefined) {
-          properties.postInitialization();
-        }
-      }).catch((e: unknown) => {
-        console.error(e);
-        alert(e);
-      });
-    }
-  }, [properties, isI18nInitialized]);
-
-  return <>{isI18nInitialized ? properties.children : undefined}</>;
-}
-```
-
-The component would then wrap the application as follows:
-
-```typescript jsx
-import { type ReactElement, StrictMode } from "react";
-import { App } from "./App.jsx";
-import { I18n } from "./I18n.jsx";
-
-/**
- * Index.
- *
- * @returns
- * React element.
- */
-export default function Index(): ReactElement {
-    <StrictMode>
-        <I18n postInitialization={() => {
-            document.title = i18nextPackage.t("App.title");
-        }}>
+    createRoot(document.getElementById("root")!).render(
+        <StrictMode>
             <App />
-        </I18n>
-    </StrictMode>
-}
+        </StrictMode>
+    );
+}).catch((e: unknown) => {
+    console.error(e);
+    alert(e);
+});
 ```
 
 ## Resources
