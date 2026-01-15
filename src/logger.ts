@@ -67,10 +67,12 @@ export function logLevelOf(untypedLogLevel?: string | number): LogLevel {
  * [`tslog`](https://tslog.js.org/).
  *
  * @param logLevel
- * Log level as enumeration value or string. Mapped to `minLevel` in settings.
+ * Log level as enumeration value or string. Mapped to `minLevel` and sets `hideLogPositionForProduction` to true in
+ * settings if at {@linkcode LogLevels.Info} or higher. Default is {@linkcode LogLevels.Info}.
  *
  * @param settings
- * Detailed settings. See [`tslog`](https://tslog.js.org/#/?id=settings) documentation for details.
+ * Detailed settings. See [`tslog`](https://tslog.js.org/#/?id=settings) documentation for details. The `minLevel` is
+ * ignored in favour of `logLevel` but `hideLogPositionForProduction` will override the default logic.
  *
  * @param logObj
  * Default log object. See [`tslog`](https://tslog.js.org/#/?id=defining-and-accessing-logobj) documentation for
@@ -83,9 +85,14 @@ export function logLevelOf(untypedLogLevel?: string | number): LogLevel {
  * Log object type.
  */
 export function getLogger<T extends object = object>(logLevel?: string | number, settings?: ISettingsParam<T>, logObj?: T): Logger<T> {
+    const minLevel = logLevelOf(logLevel);
+
     return new Logger({
+        // Hiding log position for production can be overridden in settings parameter.
+        hideLogPositionForProduction: minLevel >= LogLevels.Info,
         ...settings ?? {},
-        minLevel: logLevelOf(logLevel)
+        // Minimum log level overrides settings parameter.
+        minLevel
     }, logObj);
 }
 
