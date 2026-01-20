@@ -1,6 +1,6 @@
 {
   "name": "@aidc-toolkit/core",
-  "version": "1.0.33-beta",
+  "version": "1.0.34-alpha",
   "description": "Core functionality for AIDC Toolkit",
   "type": "module",
   "main": "dist/index.js",
@@ -21,17 +21,18 @@
   "scripts": {
     "lint": "eslint",
     "tsc-src": "tsc --project tsconfig-src.json",
-    "build:alpha": "rimraf dist && npm run tsc-src -- --declarationMap --sourceMap",
-    "build:beta": "npm run build:alpha",
+    "build:non-prod": "rimraf dist && npm run tsc-src -- --declarationMap --sourceMap",
+    "build:alpha": "npm run build:non-prod && tsc --project tsconfig-config.json --noEmit",
+    "build:beta": "npm run build:non-prod",
     "build:prod": "npm run tsc-src -- --noEmit && tsup",
-    "build:doc": "npm run build:alpha"
+    "build:doc": "npm run build:non-prod"
   },
   "devDependencies": {
-    "@aidc-toolkit/dev": "1.0.33-beta"
+    "@aidc-toolkit/dev": "1.0.34-alpha.202601201753"
   },
   "dependencies": {
     "base64-js": "^1.5.1",
-    "i18next": "^25.7.4",
+    "i18next": "^25.8.0",
     "i18next-browser-languagedetector": "^8.2.0",
     "i18next-cli-language-detector": "^1.1.8",
     "tslog": "^4.10.2"
