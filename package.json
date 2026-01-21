@@ -1,6 +1,6 @@
 {
   "name": "@aidc-toolkit/core",
-  "version": "1.0.35-alpha",
+  "version": "1.0.35-beta",
   "description": "Core functionality for AIDC Toolkit",
   "type": "module",
   "main": "dist/index.js",
