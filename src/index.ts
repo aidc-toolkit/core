@@ -21,7 +21,7 @@ export * from "./type-helper.js";
 export * from "./logger.js";
 
 export * from "./parse-version.js";
-export * from "./phase-url.js";
+export * from "./base-url.js";
 
 export * from "./app-data.js";
 export * from "./app-data-storage.js";
