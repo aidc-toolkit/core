@@ -167,7 +167,7 @@ Parts of the AIDC Toolkit require persistent application data management, but th
 
 The application data management functionality in this package provides a simple and consistent mechanism for managing application data. While not suitable for high-volumne or transactional data, it's sufficient for most applications that require simple key-value storage.
 
-The [`AppData`](https://aidc-toolkit.com/api/Core/type-aliases/AppData.html) type alias is a simple constrained type of `string`, `number`, `boolean`, or `object`. An object type must be one of:
+The [`AppData`](https://aidc-toolkit.com/v1.0/api/Core/type-aliases/AppData.html) type alias is a simple constrained type of `string`, `number`, `boolean`, or `object`. An object type must be one of:
 
 - `Date`;
 - `Uint8Array`;
@@ -181,13 +181,13 @@ Two functions `encodeAppData()` and `decodeAppData()` are provided to convert be
 - encoding `Date` objects as ISO 8601 strings preceded by the string "dateTime:"; and
 - encoding `Uint8Array` objects as [Base64](https://developer.mozilla.org/en-US/docs/Glossary/Base64) strings preceded by the string "binary:".
 
-The functions are generally not called directly. Rather, they are called automatically by the [`ReadOnlyAppDataStorage`](https://aidc-toolkit.com/api/Core/classes/ReadOnlyAppDataStorage.html) and [`AppDataStorage`](https://aidc-toolkit.com/api/Core/classes/AppDataStorage.html) classes, which are used to manage application data in the AIDC Toolkit packages.
+The functions are generally not called directly. Rather, they are called automatically by the [`ReadOnlyAppDataStorage`](https://aidc-toolkit.com/v1.0/api/Core/classes/ReadOnlyAppDataStorage.html) and [`AppDataStorage`](https://aidc-toolkit.com/v1.0/api/Core/classes/AppDataStorage.html) classes, which are used to manage application data in the AIDC Toolkit packages.
 
 Internally, each storage provider defines whether it supports binary data natively. If so, a request to read binary data will return raw content as `Uint8Array` from the underlying storage mechanism and a request to write binary data will write the `Uint8Array` as-is. This applies only to top-level read and write operations, not to `Uint8Array` values stored in nested objects.
 
 All storage providers take a path argument, which defines an implementation-specific location for the data. The following storage providers are provided by default:
 
-- [`LocalAppDataStorage`](https://aidc-toolkit.com/api/Core/variables/LocalAppDataStorage.html)
+- [`LocalAppDataStorage`](https://aidc-toolkit.com/v1.0/api/Core/variables/LocalAppDataStorage.html)
   - Not a class, but rather a `Promise` of a constructor to one of the following implementations:
     - File-based storage
       - Supports binary data.
@@ -195,11 +195,11 @@ All storage providers take a path argument, which defines an implementation-spec
     - Browser-based storage
       - Does not support binary data.
       - Maps the path by prepending it plus `/` to the key for use in [`localStorage`](https://developer.mozilla.org/en-US/docs/Web/API/Window/localStorage).
-- [`RemoteAppDataStorage`](https://aidc-toolkit.com/api/Core/classes/RemoteAppDataStorage.html)
+- [`RemoteAppDataStorage`](https://aidc-toolkit.com/v1.0/api/Core/classes/RemoteAppDataStorage.html)
   - Read-only.
   - Supports binary data.
   - Maps the path to a base URL.
 
 ## Caching
 
-The [`Cache`](https://aidc-toolkit.com/api/Core/classes/Cache.html) class provides a simple cache that can be used to maintain synchronization with an external source.
+The [`Cache`](https://aidc-toolkit.com/v1.0/api/Core/classes/Cache.html) class provides a simple cache that can be used to maintain synchronization with an external source.
