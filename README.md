@@ -32,7 +32,9 @@ All AIDC Toolkit packages require internationalization. The localization functio
 > 
 > For a complete example, including how to use application-specific resource bundles, see the AIDC Toolkit [demo source](https://github.com/aidc-toolkit/demo/tree/main/src/locale).
 
-Packages install their resources as follows in `i18n.ts` or similar. Note that "dependency1" and "dependency2" are placeholders for the names of the packages on which the package depends, and "package" is the package itself.
+### Initialization
+
+Packages initialize their resources as follows in `i18n.ts` or similar. Note that "dependency1" and "dependency2" are placeholders for the names of the packages on which the package depends, and "package" is the package itself.
 
 ```typescript
 import { i18nCoreInit, type I18nEnvironment, i18nInit } from "@aidc-toolkit/core";
@@ -110,7 +112,9 @@ declare module "i18next" {
 
 The declaration in `i18next.d.ts` exposes the resources of the dependencies to the package. The initialization process merges all the resources into a single resource bundle matching the declaration.
 
-Support is available for the following environments:
+### Environment-Specific Language Detection
+
+Language detection is available for the following environments:
 
 - [Command-line interface](#command-line-interface)
   - Unit tests
@@ -118,7 +122,19 @@ Support is available for the following environments:
 - Web server - **NOT YET IMPLEMENTED**
 - [Web browser](#web-browser)
 
-### Command-Line Interface
+When a package's `i18next` object is initialized:
+
+Language detection starts with the full locale as provided by the environment then falls back as follows:
+
+- the full locale minus the regional variant if any;
+- the full locale minus the regional variant and the region if any; and
+- the first locale as defined in the default resource bundle.
+
+Caching (typically via the `i18nextLng` attribute in some form of storage) is disabled. Depending on the detector, this may still allow reading from a cache (e.g., the browser detector from local storage or session storage) but not writing. This leaves it to the application to decide how and when to persist the language setting.
+
+#### Command-Line Interface
+
+Language detection is implemented using [I18nextCLILanguageDetector](https://github.com/neet/i18next-cli-language-detector).
 
 Initializing internationalization for a command-line interface application is straightforward:
 
@@ -126,7 +142,9 @@ Initializing internationalization for a command-line interface application is st
 await i18nPackageInit(I18nEnvironment.CLI);
 ```
 
-### Web Browser
+#### Web Browser
+
+Language detection is implemented using [I18nextBrowserLanguageDetector](https://github.com/i18next/i18next-browser-languageDetector).
 
 Initializing internationalization for a web browser requires awaiting the fulfillment of the `Promise` returned by the call to the initialization function before rendering any content. For example, in the React framework, this would be done before creating the root:
 

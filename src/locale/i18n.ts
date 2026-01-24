@@ -131,6 +131,11 @@ export async function i18nInit(i18next: i18n, environment: I18nEnvironment, debu
 
                 // Merge namespaces.
                 for (const [namespace, resourceKey] of Object.entries(languageResourceBundle)) {
+                    if (namespace in mergedLanguageResourceBundle) {
+                        // Error prior to internationalization initialization; no localization possible.
+                        throw new Error(`Duplicate namespace ${namespace} in merged resource bundle for language ${language}`);
+                    }
+
                     mergedLanguageResourceBundle[namespace] = resourceKey;
                 }
             }
@@ -139,36 +144,42 @@ export async function i18nInit(i18next: i18n, environment: I18nEnvironment, debu
         mergeResourceBundle(defaultResourceBundle);
 
         // Initialize dependencies and merge their resource bundles.
-        await Promise.all(i18nDependencyInits.map(async i18nDependencyInit =>
-            i18nDependencyInit(environment, debug).then(mergeResourceBundle))
-        ).then(() => {
-            let module: Module | Newable<Module> | NewableModule<Module>;
+        for (const i18nDependencyInit of i18nDependencyInits) {
+            // eslint-disable-next-line no-await-in-loop -- Dependencies must initialized first.
+            await i18nDependencyInit(environment, debug).then(mergeResourceBundle);
+        }
 
-            switch (environment) {
-                case I18nEnvironments.CLI:
-                    // TODO Refactor when https://github.com/neet/i18next-cli-language-detector/issues/281 resolved.
-                    // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion -- Per above.
-                    module = I18nextCLILanguageDetector as unknown as LanguageDetectorModule;
-                    break;
+        let module: Module | Newable<Module> | NewableModule<Module>;
 
-                case I18nEnvironments.Browser:
-                    module = I18nextBrowserLanguageDetector;
-                    break;
+        switch (environment) {
+            case I18nEnvironments.CLI:
+                // TODO Refactor when https://github.com/neet/i18next-cli-language-detector/issues/281 resolved.
+                // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion -- Per above.
+                module = I18nextCLILanguageDetector as unknown as LanguageDetectorModule;
+                break;
 
-                default:
-                    throw new Error("Not supported");
+            case I18nEnvironments.Browser:
+                module = I18nextBrowserLanguageDetector;
+                break;
+
+            default:
+                throw new Error("Not supported");
+        }
+
+        await i18next.use(module).init({
+            debug,
+            defaultNS,
+            resources: mergedResourceBundle,
+            // Allow fallback by removing variant code then country code until match is found.
+            nonExplicitSupportedLngs: true,
+            // Fallback to first language defined.
+            fallbackLng: Object.keys(mergedResourceBundle)[0],
+            detection: {
+                // Disabling cache allows read but requires explicit saving of i18nextLng attribute (e.g., via UI).
+                caches: []
             }
-
-            return module;
-        }).then(async module =>
-            i18next.use(module).init({
-                debug,
-                resources: mergedResourceBundle,
-                fallbackLng: "en",
-                defaultNS
-            })
-        ).then(() => {
-            // Add toLowerCase function.
+        }).then(() => {
+            // Add toLowerCase formatter.
             i18next.services.formatter?.add("toLowerCase", value => typeof value === "string" ? toLowerCase(value) : String(value));
         });
     }
