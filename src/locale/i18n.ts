@@ -51,15 +51,17 @@ export type I18nEnvironment = typeof I18nEnvironments[I18nEnvironmentKey];
 /**
  * Convert a string to lower case, skipping words that are all upper case.
  *
- * @param s
- * String.
+ * @param value
+ * Value.
  *
  * @returns
- * Lower case string.
+ * Lower case string if value is a string. If not, value is returned as a string but not converted to lower case.
  */
-function toLowerCase(s: string): string {
-    // Words with no lower case letters are preserved as they are likely mnemonics.
-    return s.split(" ").map(word => /[a-z]/u.test(word) ? word.toLowerCase() : word).join(" ");
+function toLowerCase(value: unknown): string {
+    return typeof value === "string" ?
+        // Words with no lower case letters are preserved as they are likely mnemonics.
+        value.split(" ").map(word => /[a-z]/u.test(word) ? word.toLowerCase() : word).join(" ") :
+        String(value);
 }
 
 export const coreNS = "aidct_core";
@@ -180,7 +182,7 @@ export async function i18nInit(i18next: i18n, environment: I18nEnvironment, debu
             }
         }).then(() => {
             // Add toLowerCase formatter.
-            i18next.services.formatter?.add("toLowerCase", value => typeof value === "string" ? toLowerCase(value) : String(value));
+            i18next.services.formatter?.add("toLowerCase", toLowerCase);
         });
     }
 
