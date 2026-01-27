@@ -1,101 +1,96 @@
-import type { i18n, LanguageDetectorModule, Resource } from "i18next";
+import i18next, {
+    type i18n,
+    type LanguageDetectorModule,
+    type Module,
+    type Newable,
+    type NewableModule,
+    type Resource
+} from "i18next";
 import I18nextBrowserLanguageDetector from "i18next-browser-languagedetector";
 import I18nextCLILanguageDetector from "i18next-cli-language-detector";
+import enLocaleResources from "./en/locale-resources.js";
+import frLocaleResources from "./fr/locale-resources.js";
 
 /**
  * Locale strings type for generic manipulation.
  */
-export interface LocaleStrings {
-    [key: string]: LocaleStrings | string;
+export interface LocaleResources {
+    [key: string]: LocaleResources | string;
 }
 
 /**
- * Internationalization operating environment.
+ * Internationalization operating environments.
  */
-export enum I18NEnvironment {
+export const I18nEnvironments = {
     /**
      * Command-line interface (e.g., unit tests).
      */
-    CLI,
+    CLI: 0,
 
     /**
      * Web server.
      */
-    Server,
+    Server: 1,
 
     /**
      * Web browser.
      */
-    Browser
-}
+    Browser: 2
+} as const;
 
 /**
- * Assert that language resources are a type match for English (default) resources.
- *
- * @param enResources
- * English resources.
- *
- * @param lng
- * Language.
- *
- * @param lngResources
- * Language resources.
- *
- * @param parent
- * Parent key name (set recursively).
+ * Internationalization operating environment key.
  */
-export function i18nAssertValidResources(enResources: object, lng: string, lngResources: object, parent?: string): void {
-    const enResourcesMap = new Map<string, object>(Object.entries(enResources));
-    const lngResourcesMap = new Map<string, object>(Object.entries(lngResources));
+export type I18nEnvironmentKey = keyof typeof I18nEnvironments;
 
-    const isLocale = lng.includes("-");
-
-    for (const [enKey, enValue] of enResourcesMap) {
-        const lngValue = lngResourcesMap.get(enKey);
-
-        if (lngValue !== undefined) {
-            const enValueType = typeof enValue;
-            const lngValueType = typeof lngValue;
-
-            if (lngValueType !== enValueType) {
-                throw new Error(`Invalid value type ${lngValueType} for key ${parent === undefined ? "" : `${parent}.`}${enKey} in ${lng} resources`);
-            }
-
-            if (enValueType === "object") {
-                i18nAssertValidResources(enValue, lng, lngValue, `${parent === undefined ? "" : `${parent}.`}${enKey}`);
-            }
-            // Locale falls back to raw language so ignore if missing.
-        } else if (!isLocale) {
-            throw new Error(`Missing key ${parent === undefined ? "" : `${parent}.`}${enKey} from ${lng} resources`);
-        }
-    }
-
-    for (const [lngKey] of lngResourcesMap) {
-        if (!enResourcesMap.has(lngKey)) {
-            throw new Error(`Extraneous key ${parent === undefined ? "" : `${parent}.`}${lngKey} in ${lng} resources`);
-        }
-    }
-}
+/**
+ * Internationalization operating environment.
+ */
+export type I18nEnvironment = typeof I18nEnvironments[I18nEnvironmentKey];
 
 /**
  * Convert a string to lower case, skipping words that are all upper case.
  *
- * @param s
- * String.
+ * @param value
+ * Value.
  *
  * @returns
- * Lower case string.
+ * Lower case string if value is a string. If not, value is returned as a string but not converted to lower case.
  */
-function toLowerCase(s: string): string {
-    // Words with no lower case letters are preserved as they are likely mnemonics.
-    return s.split(" ").map(word => /[a-z]/.test(word) ? word.toLowerCase() : word).join(" ");
+function toLowerCase(value: unknown): string {
+    return typeof value === "string" ?
+        // Words with no lower case letters are preserved as they are likely mnemonics.
+        value.split(" ").map(word => /[a-z]/u.test(word) ? word.toLowerCase() : word).join(" ") :
+        String(value);
 }
+
+export const coreNS = "aidct_core";
+
+/**
+ * Locale resources type is extracted from the English locale resources object.
+ */
+export type CoreLocaleResources = typeof enLocaleResources;
+
+/**
+ * Core resource bundle.
+ */
+export const coreResourceBundle: Resource = {
+    en: {
+        aidct_core: enLocaleResources
+    },
+    fr: {
+        aidct_core: frLocaleResources
+    }
+};
+
+// Explicit type is necessary because type can't be inferred without additional references.
+export const i18nextCore: i18n = i18next.createInstance();
 
 /**
  * Initialize internationalization.
  *
  * @param i18next
- * Internationalization object. As multiple objects exists, this parameter represents the one for the module for which
+ * Internationalization object. As multiple objects exist, this parameter represents the one for the module for which
  * internationalization is being initialized.
  *
  * @param environment
@@ -107,44 +102,65 @@ function toLowerCase(s: string): string {
  * @param defaultNS
  * Default namespace.
  *
- * @param resources
- * Resources.
+ * @param defaultResourceBundle
+ * Default resource bundle.
+ *
+ * @param i18nDependencyInits
+ * Dependency internationalization initialization functions.
  *
  * @returns
- * Void promise.
+ * Default resource bundle.
  */
-export async function i18nCoreInit(i18next: i18n, environment: I18NEnvironment, debug: boolean, defaultNS: string, ...resources: Resource[]): Promise<void> {
+export async function i18nInit(i18next: i18n, environment: I18nEnvironment, debug: boolean, defaultNS: string, defaultResourceBundle: Resource, ...i18nDependencyInits: Array<(environment: I18nEnvironment, debug: boolean) => Promise<Resource>>): Promise<Resource> {
     // Initialization may be called more than once.
     if (!i18next.isInitialized) {
-        const mergedResource: Resource = {};
+        const mergedResourceBundle: Resource = {};
 
-        // Merge resources.
-        for (const resource of resources) {
+        /**
+         * Merge a package resource bundle into the merged resource bundle.
+         *
+         * @param resourceBundle
+         * Package resource bundle.
+         */
+        function mergeResourceBundle(resourceBundle: Resource): void {
             // Merge languages.
-            for (const [language, resourceLanguage] of Object.entries(resource)) {
-                if (!(language in mergedResource)) {
-                    mergedResource[language] = {};
+            for (const [language, languageResourceBundle] of Object.entries(resourceBundle)) {
+                if (!(language in mergedResourceBundle)) {
+                    mergedResourceBundle[language] = {};
                 }
 
-                const mergedResourceLanguage = mergedResource[language];
+                const mergedLanguageResourceBundle = mergedResourceBundle[language];
 
                 // Merge namespaces.
-                for (const [namespace, resourceKey] of Object.entries(resourceLanguage)) {
-                    mergedResourceLanguage[namespace] = resourceKey;
+                for (const [namespace, resourceKey] of Object.entries(languageResourceBundle)) {
+                    if (namespace in mergedLanguageResourceBundle) {
+                        // Error prior to internationalization initialization; no localization possible.
+                        throw new Error(`Duplicate namespace ${namespace} in merged resource bundle for language ${language}`);
+                    }
+
+                    mergedLanguageResourceBundle[namespace] = resourceKey;
                 }
             }
         }
 
-        let module: Parameters<typeof i18next.use>[0];
+        mergeResourceBundle(defaultResourceBundle);
+
+        // Initialize dependencies and merge their resource bundles.
+        for (const i18nDependencyInit of i18nDependencyInits) {
+            // eslint-disable-next-line no-await-in-loop -- Dependencies must initialized first.
+            await i18nDependencyInit(environment, debug).then(mergeResourceBundle);
+        }
+
+        let module: Module | Newable<Module> | NewableModule<Module>;
 
         switch (environment) {
-            case I18NEnvironment.CLI:
+            case I18nEnvironments.CLI:
                 // TODO Refactor when https://github.com/neet/i18next-cli-language-detector/issues/281 resolved.
                 // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion -- Per above.
                 module = I18nextCLILanguageDetector as unknown as LanguageDetectorModule;
                 break;
 
-            case I18NEnvironment.Browser:
+            case I18nEnvironments.Browser:
                 module = I18nextBrowserLanguageDetector;
                 break;
 
@@ -154,12 +170,37 @@ export async function i18nCoreInit(i18next: i18n, environment: I18NEnvironment, 
 
         await i18next.use(module).init({
             debug,
-            resources: mergedResource,
-            fallbackLng: "en",
-            defaultNS
+            defaultNS,
+            resources: mergedResourceBundle,
+            // Allow fallback by removing variant code then country code until match is found.
+            nonExplicitSupportedLngs: true,
+            // Fallback to first language defined.
+            fallbackLng: Object.keys(mergedResourceBundle)[0],
+            detection: {
+                // Disabling cache allows read but requires explicit saving of i18nextLng attribute (e.g., via UI).
+                caches: []
+            }
         }).then(() => {
-            // Add toLowerCase function.
-            i18next.services.formatter?.add("toLowerCase", value => typeof value === "string" ? toLowerCase(value) : String(value));
+            // Add toLowerCase formatter.
+            i18next.services.formatter?.add("toLowerCase", toLowerCase);
         });
     }
+
+    return defaultResourceBundle;
+}
+
+/**
+ * Initialize internationalization.
+ *
+ * @param environment
+ * Environment in which the application is running.
+ *
+ * @param debug
+ * Debug setting.
+ *
+ * @returns
+ * Core resource bundle.
+ */
+export async function i18nCoreInit(environment: I18nEnvironment, debug = false): Promise<Resource> {
+    return i18nInit(i18nextCore, environment, debug, coreNS, coreResourceBundle);
 }

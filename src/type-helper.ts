@@ -1,0 +1,169 @@
+/**
+ * Create an object with omitted or picked entries.
+ *
+ * @template Omitting
+ * Type representation of `omitting` parameter for return type determination.
+ *
+ * @template T
+ * Object type.
+ *
+ * @template K
+ * Object key type.
+ *
+ * @param omitting
+ * True if omitting.
+ *
+ * @param o
+ * Object.
+ *
+ * @param keys
+ * Keys to omit or pick.
+ *
+ * @returns
+ * Edited object.
+ */
+function omitOrPick<Omitting extends boolean, T extends object, K extends keyof T>(omitting: Omitting, o: T, ...keys: K[]): Omitting extends true ? Omit<T, K> : Pick<T, K> {
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion -- Key and value types are known.
+    return Object.fromEntries(Object.entries(o).filter(([key]) => keys.includes(key as K) !== omitting)) as ReturnType<typeof omitOrPick<Omitting, T, K>>;
+}
+
+/**
+ * Create an object with omitted entries.
+ *
+ * @template T
+ * Object type.
+ *
+ * @template K
+ * Object key type.
+ *
+ * @param o
+ * Object.
+ *
+ * @param keys
+ * Keys to omit.
+ *
+ * @returns
+ * Edited object.
+ */
+export function omit<T extends object, K extends keyof T>(o: T, ...keys: K[]): Omit<T, K> {
+    return omitOrPick(true, o, ...keys);
+}
+
+/**
+ * Create an object with picked entries.
+ *
+ * @template T
+ * Object type.
+ *
+ * @template K
+ * Object key type.
+ *
+ * @param o
+ * Object.
+ *
+ * @param keys
+ * Keys to pick.
+ *
+ * @returns
+ * Edited object.
+ */
+export function pick<T extends object, K extends keyof T>(o: T, ...keys: K[]): Pick<T, K> {
+    return omitOrPick(false, o, ...keys);
+}
+
+/**
+ * Create an object from a wide object without entries matching those from a narrow object.
+ *
+ * @template TWide
+ * Wide object type.
+ *
+ * @template TNarrow
+ * Narrow object type.
+ *
+ * @template K
+ * Narrow object key type, subset of wide object key type.
+ *
+ * @param wide
+ * Wide object.
+ *
+ * @param narrow
+ * Narrow object.
+ *
+ * @returns
+ * Edited object.
+ */
+export function exclude<TWide extends TNarrow, TNarrow extends object, K extends keyof TNarrow>(wide: TWide, narrow: TNarrow): Omit<TWide, K> {
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion -- Keys are valid.
+    return omit(wide, ...Object.keys(narrow) as K[]);
+}
+
+/**
+ * Create an object from a wide object with entries matching those from a narrow object.
+ *
+ * @template TWide
+ * Wide object type.
+ *
+ * @template TNarrow
+ * Narrow object type.
+ *
+ * @template K
+ * Narrow object key type, subset of wide object key type.
+ *
+ * @param wide
+ * Wide object.
+ *
+ * @param narrow
+ * Narrow object.
+ *
+ * @returns
+ * Edited object.
+ */
+export function include<TWide extends TNarrow, TNarrow extends object, K extends keyof TNarrow>(wide: TWide, narrow: TNarrow): Pick<TWide, K> {
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion -- Keys are valid.
+    return pick(wide, ...Object.keys(narrow) as K[]);
+}
+
+/**
+ * Cast a property as a more narrow type.
+ *
+ * @template T
+ * Object type.
+ *
+ * @template K
+ * Object key type.
+ *
+ * @template TAsType
+ * Desired type.
+ *
+ * @param o
+ * Object.
+ *
+ * @param key
+ * Key of property to cast.
+ *
+ * @returns
+ * Single-key object with property cast as desired type.
+ */
+export function propertyAs<T extends object, K extends keyof T, TAsType extends T[K]>(o: T, key: K): Readonly<Omit<T, K> extends T ? Partial<Record<K, TAsType>> : Record<K, TAsType>> {
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion -- Type is determined by condition.
+    return (key in o ?
+        {
+            // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion -- Force cast.
+            [key]: o[key] as TAsType
+        } :
+        {}
+    ) as ReturnType<typeof propertyAs<T, K, TAsType>>;
+}
+
+/**
+ * Determine if argument is nullish. Application extension may pass `null` or `undefined` to missing parameters.
+ *
+ * @param argument
+ * Argument.
+ *
+ * @returns
+ * True if argument is undefined or null.
+ */
+export function isNullish(argument: unknown): argument is null | undefined {
+    return argument === null || argument === undefined;
+}
