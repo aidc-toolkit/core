@@ -26,6 +26,7 @@ export * from "./website-url.js";
 export * from "./app-data.js";
 export * from "./app-data-storage.js";
 export * from "./local-app-data-storage.js";
+export * from "./http-fetch.js";
 export * from "./remote-app-data-storage.js";
 export * from "./cache.js";
 
