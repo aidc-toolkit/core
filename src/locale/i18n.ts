@@ -112,6 +112,8 @@ export const i18nextCore: i18n = i18next.createInstance();
  * Default resource bundle.
  */
 export async function i18nInit(i18next: i18n, environment: I18nEnvironment, debug: boolean, defaultNS: string, defaultResourceBundle: Resource, ...i18nDependencyInits: Array<(environment: I18nEnvironment, debug: boolean) => Promise<Resource>>): Promise<Resource> {
+    let initAll: Promise<void> | undefined = undefined;
+
     // Initialization may be called more than once.
     if (!i18next.isInitialized) {
         const mergedResourceBundle: Resource = {};
@@ -145,10 +147,11 @@ export async function i18nInit(i18next: i18n, environment: I18nEnvironment, debu
 
         mergeResourceBundle(defaultResourceBundle);
 
-        // Initialize dependencies and merge their resource bundles.
+        // Build chain to initialize dependencies and merge their resource bundles.
         for (const i18nDependencyInit of i18nDependencyInits) {
-            // eslint-disable-next-line no-await-in-loop -- Dependencies must initialized first.
-            await i18nDependencyInit(environment, debug).then(mergeResourceBundle);
+            const initDependency = i18nDependencyInit(environment, debug).then(mergeResourceBundle);
+
+            initAll = initAll === undefined ? initDependency : initAll.then(async () => initDependency);
         }
 
         let module: Module | Newable<Module> | NewableModule<Module>;
@@ -168,7 +171,7 @@ export async function i18nInit(i18next: i18n, environment: I18nEnvironment, debu
                 throw new Error("Not supported");
         }
 
-        await i18next.use(module).init({
+        const initThis = i18next.use(module).init({
             debug,
             defaultNS,
             resources: mergedResourceBundle,
@@ -184,9 +187,11 @@ export async function i18nInit(i18next: i18n, environment: I18nEnvironment, debu
             // Add toLowerCase formatter.
             i18next.services.formatter?.add("toLowerCase", toLowerCase);
         });
+
+        initAll = initAll === undefined ? initThis : initAll.then(async () => initThis);
     }
 
-    return defaultResourceBundle;
+    return initAll !== undefined ? initAll.then(() => defaultResourceBundle) : defaultResourceBundle;
 }
 
 /**
