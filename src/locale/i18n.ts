@@ -1,7 +1,6 @@
 import i18next, {
     type i18n,
     type LanguageDetectorModule,
-    type Module,
     type Newable,
     type NewableModule,
     type Resource
@@ -19,34 +18,27 @@ export interface LocaleResources {
 }
 
 /**
- * Internationalization operating environments.
+ * Internationalization language detectors.
  */
-export const I18nEnvironments = {
+export const I18nLanguageDetectors = {
     /**
      * Command-line interface (e.g., unit tests).
      */
-    CLI: 0,
-
-    /**
-     * Web server.
-     */
-    Server: 1,
+    // TODO Refactor when https://github.com/neet/i18next-cli-language-detector/issues/281 resolved.
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion -- Per above.
+    CLI: I18nextCLILanguageDetector as unknown as LanguageDetectorModule,
 
     /**
      * Web browser.
      */
-    Browser: 2
+    Browser: I18nextBrowserLanguageDetector as Newable<LanguageDetectorModule>
 } as const;
 
 /**
- * Internationalization operating environment key.
+ * Internationalization language detector.
  */
-export type I18nEnvironmentKey = keyof typeof I18nEnvironments;
-
-/**
- * Internationalization operating environment.
- */
-export type I18nEnvironment = typeof I18nEnvironments[I18nEnvironmentKey];
+export type I18nLanguageDetector =
+    LanguageDetectorModule | Newable<LanguageDetectorModule> | NewableModule<LanguageDetectorModule>;
 
 /**
  * Convert a string to lower case, skipping words that are all upper case.
@@ -93,8 +85,8 @@ export const i18nextCore: i18n = i18next.createInstance();
  * Internationalization object. As multiple objects exist, this parameter represents the one for the module for which
  * internationalization is being initialized.
  *
- * @param environment
- * Environment in which the application is running.
+ * @param languageDetector
+ * Language detector.
  *
  * @param debug
  * Debug setting.
@@ -111,7 +103,7 @@ export const i18nextCore: i18n = i18next.createInstance();
  * @returns
  * Default resource bundle.
  */
-export async function i18nInit(i18next: i18n, environment: I18nEnvironment, debug: boolean, defaultNS: string, defaultResourceBundle: Resource, ...i18nDependencyInits: Array<(environment: I18nEnvironment, debug: boolean) => Promise<Resource>>): Promise<Resource> {
+export async function i18nInit(i18next: i18n, languageDetector: I18nLanguageDetector, debug: boolean, defaultNS: string, defaultResourceBundle: Resource, ...i18nDependencyInits: Array<(languageDetector: I18nLanguageDetector, debug: boolean) => Promise<Resource>>): Promise<Resource> {
     let initAll: Promise<void> | undefined = undefined;
 
     // Initialization may be called more than once.
@@ -149,29 +141,12 @@ export async function i18nInit(i18next: i18n, environment: I18nEnvironment, debu
 
         // Build chain to initialize dependencies and merge their resource bundles.
         for (const i18nDependencyInit of i18nDependencyInits) {
-            const initDependency = i18nDependencyInit(environment, debug).then(mergeResourceBundle);
+            const initDependency = i18nDependencyInit(languageDetector, debug).then(mergeResourceBundle);
 
             initAll = initAll === undefined ? initDependency : initAll.then(async () => initDependency);
         }
 
-        let module: Module | Newable<Module> | NewableModule<Module>;
-
-        switch (environment) {
-            case I18nEnvironments.CLI:
-                // TODO Refactor when https://github.com/neet/i18next-cli-language-detector/issues/281 resolved.
-                // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion -- Per above.
-                module = I18nextCLILanguageDetector as unknown as LanguageDetectorModule;
-                break;
-
-            case I18nEnvironments.Browser:
-                module = I18nextBrowserLanguageDetector;
-                break;
-
-            default:
-                throw new Error("Not supported");
-        }
-
-        const initThis = i18next.use(module).init({
+        const initThis = i18next.use(languageDetector).init({
             debug,
             defaultNS,
             resources: mergedResourceBundle,
@@ -197,8 +172,8 @@ export async function i18nInit(i18next: i18n, environment: I18nEnvironment, debu
 /**
  * Initialize internationalization.
  *
- * @param environment
- * Environment in which the application is running.
+ * @param languageDetector
+ * Language detector.
  *
  * @param debug
  * Debug setting.
@@ -206,6 +181,6 @@ export async function i18nInit(i18next: i18n, environment: I18nEnvironment, debu
  * @returns
  * Core resource bundle.
  */
-export async function i18nCoreInit(environment: I18nEnvironment, debug = false): Promise<Resource> {
-    return i18nInit(i18nextCore, environment, debug, coreNS, coreResourceBundle);
+export async function i18nCoreInit(languageDetector: I18nLanguageDetector, debug = false): Promise<Resource> {
+    return i18nInit(i18nextCore, languageDetector, debug, coreNS, coreResourceBundle);
 }
