@@ -1,9 +1,13 @@
 import i18next, {
+    type DefaultNamespace,
     type i18n,
     type LanguageDetectorModule,
+    type Namespace,
     type Newable,
     type NewableModule,
-    type Resource
+    type ParseKeys,
+    type Resource,
+    type TOptions
 } from "i18next";
 import I18nextBrowserLanguageDetector from "i18next-browser-languagedetector";
 import I18nextCLILanguageDetector from "i18next-cli-language-detector";
@@ -54,6 +58,34 @@ function toLowerCase(value: unknown): string {
         // Words with no lower case letters are preserved as they are likely mnemonics.
         value.split(" ").map(word => /[a-z]/u.test(word) ? word.toLowerCase() : word).join(" ") :
         String(value);
+}
+
+/**
+ * Determine if a key exists.
+ *
+ * @param i18next
+ * Internationalization object.
+ *
+ * @param key
+ * Key to check.
+ *
+ * @param options
+ * Options.
+ *
+ * @returns
+ * True if key exists in the specified namespace with the given options.
+ */
+export function isI18nParseKey<
+    TNamespace extends Namespace = DefaultNamespace,
+    TNamespaceOptions extends TOptions = TNamespace extends DefaultNamespace ?
+        {
+            ns?: DefaultNamespace;
+        } :
+        {
+            ns: TNamespace;
+        }
+>(i18next: i18n, key: string, options?: TNamespaceOptions): key is ParseKeys<TNamespace, TNamespaceOptions> {
+    return i18next.exists(key, options);
 }
 
 export const coreNS = "aidct_core";
