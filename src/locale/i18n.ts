@@ -18,7 +18,7 @@ import frLocaleResources from "./fr/locale-resources.js";
  * Locale strings type for generic manipulation.
  */
 export interface LocaleResources {
-    [key: string]: LocaleResources | string;
+    [key: string]: LocaleResources | string | undefined;
 }
 
 /**
