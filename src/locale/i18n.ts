@@ -136,7 +136,7 @@ export const i18nextCore: i18n = i18next.createInstance();
  * Default resource bundle.
  */
 export async function i18nInit(i18next: i18n, languageDetector: I18nLanguageDetector, debug: boolean, defaultNS: string, defaultResourceBundle: Resource, ...i18nDependencyInits: Array<(languageDetector: I18nLanguageDetector, debug: boolean) => Promise<Resource>>): Promise<Resource> {
-    let initAll: Promise<void> | undefined = undefined;
+    let result;
 
     // Initialization may be called more than once.
     if (!i18next.isInitialized) {
@@ -171,11 +171,13 @@ export async function i18nInit(i18next: i18n, languageDetector: I18nLanguageDete
 
         mergeResourceBundle(defaultResourceBundle);
 
+        let initDependencies: Promise<void> | undefined = undefined;
+
         // Build chain to initialize dependencies and merge their resource bundles.
         for (const i18nDependencyInit of i18nDependencyInits) {
             const initDependency = i18nDependencyInit(languageDetector, debug).then(mergeResourceBundle);
 
-            initAll = initAll === undefined ? initDependency : initAll.then(async () => initDependency);
+            initDependencies = initDependencies === undefined ? initDependency : initDependencies.then(async () => initDependency);
         }
 
         const initThis = i18next.use(languageDetector).init({
@@ -195,12 +197,14 @@ export async function i18nInit(i18next: i18n, languageDetector: I18nLanguageDete
         }).then(() => {
             // Add toLowerCase formatter.
             i18next.services.formatter?.add("toLowerCase", toLowerCase);
-        });
+        }).then(() => defaultResourceBundle);
 
-        initAll = initAll === undefined ? initThis : initAll.then(async () => initThis);
+        result = initDependencies === undefined ? initThis : initDependencies.then(async () => initThis);
+    } else {
+        result = defaultResourceBundle;
     }
 
-    return initAll !== undefined ? initAll.then(() => defaultResourceBundle) : defaultResourceBundle;
+    return result;
 }
 
 /**
