@@ -189,7 +189,9 @@ export async function i18nInit(i18next: i18n, languageDetector: I18nLanguageDete
             detection: {
                 // Disabling cache allows read but requires explicit saving of i18nextLng attribute (e.g., via UI).
                 caches: []
-            }
+            },
+            // Disable support notice.
+            showSupportNotice: false
         }).then(() => {
             // Add toLowerCase formatter.
             i18next.services.formatter?.add("toLowerCase", toLowerCase);
