@@ -1,6 +1,6 @@
 {
   "name": "@aidc-toolkit/core",
-  "version": "1.0.47",
+  "version": "1.0.48",
   "description": "Core functionality for AIDC Toolkit",
   "type": "module",
   "main": "dist/index.js",
@@ -28,11 +28,11 @@
     "build:doc": "npm run build:non-prod"
   },
   "devDependencies": {
-    "@aidc-toolkit/dev": "^1.0.46"
+    "@aidc-toolkit/dev": "^1.0.47"
   },
   "dependencies": {
     "base64-js": "^1.5.1",
-    "i18next": "^25.8.14",
+    "i18next": "^26.3.1",
     "i18next-browser-languagedetector": "^8.2.1",
     "i18next-cli-language-detector": "^1.1.8",
     "tslog": "^4.10.2"
