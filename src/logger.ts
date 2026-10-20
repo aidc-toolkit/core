@@ -88,8 +88,14 @@ export function getLogger<T extends object = object>(logLevel?: string | number,
     const minLevel = logLevelOf(logLevel);
 
     return new Logger({
-        // Hiding log position for production can be overridden in settings parameter.
-        hideLogPositionForProduction: minLevel >= LogLevels.Info,
+        // Stack capture for production can be overridden in settings parameter.
+        stack: minLevel >= LogLevels.Info ?
+            {
+                capture: "off"
+            } :
+            {
+                capture: "full"
+            },
         ...settings ?? {},
         // Minimum log level overrides settings parameter.
         minLevel
