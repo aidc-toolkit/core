@@ -27,9 +27,7 @@ interface LocalResources {
  * Alpha URL. Reads from local application storage, path "config", key "resources.local", if present, otherwise defaults
  * to Vite development server URL.
  */
-export const ALPHA_URL = LocalAppDataStorage.then(async LocalAppDataStorage =>
-    new LocalAppDataStorage(CONFIGURATION_PATH).read(LOCAL_RESOURCES_KEY)
-).then(resources =>
+export const ALPHA_URL = new LocalAppDataStorage(CONFIGURATION_PATH).read(LOCAL_RESOURCES_KEY).then(resources =>
     // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion -- Fallback works regardless of type.
     (resources as (LocalResources | undefined))?.alphaURL ?? DEFAULT_ALPHA_URL
 );
