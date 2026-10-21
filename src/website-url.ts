@@ -24,13 +24,17 @@ interface LocalResources {
 }
 
 /**
- * Alpha URL. Reads from local application storage, path "config", key "resources.local", if present, otherwise defaults
- * to Vite development server URL.
+ * Determine the alpha URL.
+ *
+ * @returns
+ * Alpha URL.
  */
-export const ALPHA_URL = new LocalAppDataStorage(CONFIGURATION_PATH).read(LOCAL_RESOURCES_KEY).then(resources =>
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion -- Fallback works regardless of type.
-    (resources as (LocalResources | undefined))?.alphaURL ?? DEFAULT_ALPHA_URL
-);
+export async function alphaURL(): Promise<string> {
+    return new LocalAppDataStorage(CONFIGURATION_PATH).read(LOCAL_RESOURCES_KEY).then(resources =>
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion -- Fallback works regardless of type.
+        (resources as (LocalResources | undefined))?.alphaURL ?? DEFAULT_ALPHA_URL
+    );
+}
 
 /**
  * AIDC Toolkit website base URL.
