@@ -71,7 +71,7 @@ export type Promisable<T> = T | Promise<T>;
 
 /**
  * Determine the fundamental promised type. This is stricter than `Awaited<Type>` in that it requires a {@linkcode
- * Promise}.
+ * PromiseLike}.
  *
  * @template T
  * Promised type.
