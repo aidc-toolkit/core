@@ -96,7 +96,7 @@ export function getLogger<T extends object = object>(logLevel?: string | number,
             {
                 capture: "full"
             },
-        ...settings ?? {},
+        ...settings,
         // Minimum log level overrides settings parameter.
         minLevel
     }, logObj);
