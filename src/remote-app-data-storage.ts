@@ -1,24 +1,21 @@
-import { ReadOnlyAppDataStorage } from "./app-data-storage.js";
+import { ReadOnlyAppDataStorage, ReadOnlyAppDataStorageDelegate } from "./app-data-storage.js";
 import { defaultHTTPFetch, HTTP_NOT_FOUND, type HTTPFetch } from "./http-fetch.js";
 import { i18nextCore } from "./locale/i18n.js";
 
 /**
- * Remote application data storage using HTTP.
+ * Remote application data storage delegate using HTTP.
  */
-export class RemoteAppDataStorage extends ReadOnlyAppDataStorage<true> {
+export class RemoteAppDataStorageDelegate extends ReadOnlyAppDataStorageDelegate {
     readonly #httpFetch: HTTPFetch;
 
     /**
      * Constructor.
      *
-     * @param baseURL
-     * Base URL. The URL must not end with a slash.
-     *
      * @param httpFetch
      * HTTP fetch function.
      */
-    constructor(baseURL: string, httpFetch: HTTPFetch = defaultHTTPFetch) {
-        super(true, baseURL);
+    constructor(httpFetch: HTTPFetch) {
+        super(true);
 
         this.#httpFetch = httpFetch;
     }
@@ -26,7 +23,7 @@ export class RemoteAppDataStorage extends ReadOnlyAppDataStorage<true> {
     /**
      * @inheritDoc
      */
-    protected override async doRead(key: string, asBinary: boolean | undefined): Promise<string | Uint8Array | undefined> {
+    override async doRead(key: string, asBinary: boolean | undefined): Promise<string | Uint8Array | undefined> {
         const response = await this.#httpFetch(key);
 
         let result: string | Uint8Array | undefined;
@@ -42,5 +39,23 @@ export class RemoteAppDataStorage extends ReadOnlyAppDataStorage<true> {
         }
 
         return result;
+    }
+}
+
+/**
+ * Remote application data storage using HTTP.
+ */
+export class RemoteAppDataStorage extends ReadOnlyAppDataStorage<RemoteAppDataStorageDelegate> {
+    /**
+     * Constructor.
+     *
+     * @param baseURL
+     * Base URL. The URL must not end with a slash.
+     *
+     * @param httpFetch
+     * HTTP fetch function.
+     */
+    constructor(baseURL: string, httpFetch: HTTPFetch = defaultHTTPFetch) {
+        super(new RemoteAppDataStorageDelegate(httpFetch), baseURL);
     }
 }

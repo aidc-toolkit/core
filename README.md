@@ -204,14 +204,16 @@ Internally, each storage provider defines whether it supports binary data native
 
 All storage providers take a path argument, which defines an implementation-specific location for the data. The following storage providers are provided by default:
 
-- [`LocalAppDataStorage`](https://aidc-toolkit.com/v1.0/api/Core/variables/LocalAppDataStorage.html)
-  - Not a class, but rather a `Promise` of a constructor to one of the following implementations:
-    - File-based storage
-      - Supports binary data.
-      - Maps the path to an absolute or relative directory.
+- [`LocalAppDataStorage`](https://aidc-toolkit.com/v1.0/api/Core/classes/LocalAppDataStorage.html)
+  - Determines an appropriate implementation based on the local environment. One of:
     - Browser-based storage
       - Does not support binary data.
       - Maps the path by prepending it plus `/` to the key for use in [`localStorage`](https://developer.mozilla.org/en-US/docs/Web/API/Window/localStorage).
+    - File-based storage
+      - Supports binary data.
+      - Maps the path to an absolute or relative directory.
+    - No-op storage
+      - Swallows all requests without error.
 - [`RemoteAppDataStorage`](https://aidc-toolkit.com/v1.0/api/Core/classes/RemoteAppDataStorage.html)
   - Read-only.
   - Supports binary data.
