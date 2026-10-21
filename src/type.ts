@@ -87,25 +87,6 @@ export type PromisedType<T> = [T] extends [PromiseLike<infer TPromised>] ? TProm
 export type TypedAsyncFunction<TMethod extends (...args: Parameters<TMethod>) => PromiseLike<PromisedType<ReturnType<TMethod>>>> = (...args: Parameters<TMethod>) => Promise<PromisedType<ReturnType<TMethod>>>;
 
 /**
- * Nullishable type. Extends a type by allowing `null` and `undefined`.
- *
- * @template T
- * Type.
- */
-export type Nullishable<T> = T | null | undefined;
-
-/**
- * Non-nullishable type. If T is an object type, it is spread and attributes within it are made non-nullishable.
- * Equivalent to a deep `Required<T>` for an object and `NonNullable<T>` for any other type.
- *
- * @template T
- * Type.
- */
-export type NonNullishable<T> = T extends object ? {
-    [P in keyof T]-?: NonNullishable<T[P]>
-} : NonNullable<T>;
-
-/**
  * Make some keys within a type optional.
  *
  * @template T
