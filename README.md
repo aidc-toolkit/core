@@ -182,16 +182,9 @@ Parts of the AIDC Toolkit require persistent application data management, but th
 - Server-based applications use a database, which may have a strict schema.
 - Other applications may use a different mechanism entirely, such as storing content in an XML node in a document.
 
-The application data management functionality in this package provides a simple and consistent mechanism for managing application data. While not suitable for high-volumne or transactional data, it's sufficient for most applications that require simple key-value storage.
+The application data management functionality in this package provides a simple and consistent mechanism for managing application data. While not suitable for high-volume or transactional data, it's sufficient for most applications that require simple key-value storage.
 
-The [`AppData`](https://aidc-toolkit.com/v1.0/api/Core/type-aliases/AppData.html) type alias is a simple constrained type of `string`, `number`, `boolean`, or `object`. An object type must be one of:
-
-- `Date`;
-- `Uint8Array`;
-- array of `AppData` or `undefined`; or
-- object containing only `AppData` or `undefined`
-
-Limitations in TypeScript prevent the use of recursive types and string index signatures, so there is no type enforcement beyond the basic type checks.
+The [`AppData`](https://aidc-toolkit.com/v1.0/api/Core/type-aliases/AppData.html) type alias is a constrained type of `string`, `number`, `boolean`, `Date`, `Uint8Array`, array of `AppData`, or object consisting of `AppData` properties.
 
 Two functions `encodeAppData()` and `decodeAppData()` are provided to convert between `AppData` and JSON. These enhance the normal JSON serialization/deserialization rules by:
 
