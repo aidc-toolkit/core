@@ -1,6 +1,6 @@
 import { ReadOnlyAppDataStorage, ReadOnlyAppDataStorageDelegate } from "./app-data-storage.js";
 import { defaultHTTPFetch, HTTP_NOT_FOUND, type HTTPFetch } from "./http-fetch.js";
-import { i18nextCore } from "./locale/i18n.js";
+import { i18nextCoreT } from "./locale/i18n.js";
 
 /**
  * Remote application data storage delegate using HTTP.
@@ -33,7 +33,7 @@ export class RemoteAppDataStorageDelegate extends ReadOnlyAppDataStorageDelegate
         } else if (response.status === HTTP_NOT_FOUND) {
             result = undefined;
         } else {
-            throw new RangeError(i18nextCore.t("RemoteAppDataStorage.httpError", {
+            throw new RangeError(i18nextCoreT("RemoteAppDataStorage.httpError", {
                 status: response.status
             }));
         }
