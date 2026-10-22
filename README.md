@@ -37,17 +37,25 @@ All AIDC Toolkit packages require internationalization. The localization functio
 Packages initialize their resources as follows in `i18n.ts` or similar. Note that "dependency1" and "dependency2" are placeholders for the names of the packages on which the package depends, and "package" is the package itself.
 
 ```typescript
-import { i18nCoreInit, i18nInit, type I18nLanguageDetector } from "@aidc-toolkit/core";
+import { i18nCoreInit, i18nextInstance, i18nInit, type I18nLanguageDetector } from "@aidc-toolkit/core";
 import { i18nDependency1Init } from "@aidc-toolkit/dependency1";
 import { i18nDependency2Init } from "@aidc-toolkit/dependency2";
-import i18next, { type i18n, type Resource } from "i18next";
+import type { ParseKeys, Resource } from "i18next";
 import enLocaleResources from "./en/locale-resources.js";
 import frLocaleResources from "./fr/locale-resources.js";
 
-const packageNS = "aidct_package";
+/**
+ * Package namespace.
+ */
+export const packageNS = "aidct_package";
 
 /**
- * Locale strings type is extracted from the English locale strings object.
+ * Package parse keys.
+ */
+export type PackageParseKeys = ParseKeys<typeof packageNS>;
+
+/**
+ * Locale resources type is extracted from the English locale strings object.
  */
 export type PackageLocaleResources = typeof enLocaleResources;
 
@@ -63,8 +71,10 @@ const packageResourceBundle = {
   }
 };
 
-// Explicit type is necessary because type can't be inferred without additional references.
-export const i18nextPackage: i18n = i18next.createInstance();
+/**
+ * Package i18next translator function.
+ */
+export const i18nextPackageT = i18nextInstance.getFixedT(null, packageNS);
 
 /**
  * Initialize internationalization.
@@ -79,7 +89,7 @@ export const i18nextPackage: i18n = i18next.createInstance();
  * Package resource bundle.
  */
 export async function i18nPackageInit(languageDetector: I18nLanguageDetector, debug = false): Promise<Resource> {
-  return i18nInit(i18nextPackage, languageDetector, debug, packageNS, packageResourceBundle, i18nCoreInit, i18nDependency2Init, i18nDependency1Init);
+  return i18nInit(languageDetector, debug, packageResourceBundle, i18nCoreInit, i18nUtilityInit, i18nGS1Init);
 }
 ```
 
@@ -87,9 +97,9 @@ The resource types are declared in `i18next.d.ts` or similar:
 
 ```typescript
 import type { CoreLocaleResources } from "@aidc-toolkit/core";
-import type { Dependency1LocaleStrings } from "@aidc-toolkit/dependency1";
-import type { Dependency2LocaleStrings } from "@aidc-toolkit/dependency2";
-import type { PackageLocaleStrings } from "./i18n";
+import type { Dependency1LocaleResources } from "@aidc-toolkit/dependency1";
+import type { Dependency2LocaleResources } from "@aidc-toolkit/dependency2";
+import type { DemoLocaleResources } from "./i18n.js";
 
 /**
  * Internationalization module.
@@ -99,12 +109,11 @@ declare module "i18next" {
      * Custom type options for this package.
      */
     interface CustomTypeOptions {
-        defaultNS: "aidct_package";
         resources: {
             aidct_core: CoreLocaleResources;
-            aidct_dependency1: Dependency1LocaleStrings;
-            aidct_dependency2: Dependency2LocaleStrings;
-            aidct_package: PackageLocaleStrings;
+            aidct_dependency1: Dependency1LocaleResources;
+            aidct_dependency2: Dependency2LocaleResources;
+            aidct_package: PackageLocaleResources;
         };
     }
 }
@@ -121,9 +130,7 @@ Language detection is available for the following environments:
   - Command-line or helper applications
 - [Web browser](#web-browser)
 
-When a package's `i18next` object is initialized:
-
-Language detection starts with the full locale as provided by the environment then falls back as follows:
+When the global `i18nextInstance` object is initialized, language detection starts with the full locale as provided by the environment then falls back as follows:
 
 - the full locale minus the regional variant if any;
 - the full locale minus the regional variant and the region if any; and
@@ -152,11 +159,11 @@ import { I18nLanguageDetectors } from "@aidc-toolkit/core";
 import { StrictMode } from "react";
 import { createRoot } from "react-dom/client";
 import { App } from "./App.jsx";
-import { i18nPackageInit, i18nextPackage } from "./locale/i18n.js";
+import { i18nPackageInit, i18nextPackageT } from "./locale/i18n.js";
 
 i18nPackageInit(I18nLanguageDetectors.Browser).then(() => {
     // Set the page title.
-    document.title = i18nextPackage.t("App.title");
+    document.title = i18nextPackageT("App.title");
 
     createRoot(document.getElementById("root")!).render(
         <StrictMode>
