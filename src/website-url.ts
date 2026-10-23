@@ -2,9 +2,9 @@ import { LocalAppDataStorage } from "./local-app-data-storage.js";
 import { parseVersion } from "./parse-version.js";
 
 /**
- * Default alpha URL (Vite development server URL) if no local resources found.
+ * Default alpha URL (VitePress preview URL) if no local resources found.
  */
-const DEFAULT_ALPHA_URL = "http://localhost:5173";
+const DEFAULT_ALPHA_URL = "http://localhost:4173";
 
 /**
  * Configuration path, expected to be present in development but not necessarily in production.
