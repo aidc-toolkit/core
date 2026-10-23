@@ -30,7 +30,8 @@
     "build:alpha": "npm run build:non-prod && tsc --project tsconfig-config.json --noEmit",
     "build:beta": "npm run build:non-prod",
     "build:prod": "npm run tsc-src -- --noEmit && tsup --tsconfig tsconfig-tsup.json",
-    "build:doc": "npm run build:non-prod"
+    "build:doc": "npm run build:non-prod",
+    "prepack": "npmignore --ignore !/dist/ /.* *.iml"
   },
   "devDependencies": {
     "@aidc-toolkit/dev": "^2.0.0-alpha",
