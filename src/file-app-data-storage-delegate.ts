@@ -7,6 +7,17 @@ import { AppDataStorageDelegate } from "./app-data-storage.js";
  */
 export class FileAppDataStorageDelegate extends AppDataStorageDelegate {
     /**
+     * Determine if node:fs is available. In some environments, node:fs may be polyfilled with no support.
+     *
+     * @returns
+     * True if node:fs is available.
+     */
+    static isNodeFSAvailable(): boolean {
+        // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition -- Optional chain result is undefined in some polyfilled environments.
+        return fs?.promises?.readFile !== undefined;
+    }
+
+    /**
      * Constructor.
      */
     constructor() {

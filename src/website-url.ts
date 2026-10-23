@@ -30,7 +30,9 @@ interface LocalResources {
  * Alpha URL.
  */
 export async function alphaURL(): Promise<string> {
-    return new LocalAppDataStorage(CONFIGURATION_PATH).read(LOCAL_RESOURCES_KEY).then(resources =>
+    return LocalAppDataStorage.get(CONFIGURATION_PATH).then(async localAppDataStorage =>
+        localAppDataStorage.read(LOCAL_RESOURCES_KEY)
+    ).then(resources =>
         // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion -- Fallback works regardless of type.
         (resources as (LocalResources | undefined))?.alphaURL ?? DEFAULT_ALPHA_URL
     );
