@@ -20,7 +20,10 @@ const LOCAL_RESOURCES_KEY = "resources.local";
  * Local resources.
  */
 interface LocalResources {
-    alphaURL: string;
+    /**
+     * Alpha URL.
+     */
+    alphaURL?: string;
 }
 
 /**
