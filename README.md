@@ -109,11 +109,29 @@ declare module "i18next" {
      * Custom type options for this package.
      */
     interface CustomTypeOptions {
+        /**
+         * Resources override.
+         */
         resources: {
-            aidct_core: CoreLocaleResources;
-            aidct_dependency1: Dependency1LocaleResources;
-            aidct_dependency2: Dependency2LocaleResources;
-            aidct_package: PackageLocaleResources;
+          /**
+           * Core locale resources.
+           */
+          aidct_core: CoreLocaleResources;
+  
+          /**
+           * Dependency 1 locale resources.
+           */
+          aidct_dependency1: UtilityLocaleResources;
+  
+          /**
+           * Dependency 2 locale resources.
+           */
+          aidct_dependency2: GS1LocaleResources;
+  
+          /**
+           * Package locale resources.
+           */
+          aidct_package: AppExtensionLocaleResources;
         };
     }
 }
