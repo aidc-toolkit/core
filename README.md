@@ -37,17 +37,25 @@ All AIDC Toolkit packages require internationalization. The localization functio
 Packages initialize their resources as follows in `i18n.ts` or similar. Note that "dependency1" and "dependency2" are placeholders for the names of the packages on which the package depends, and "package" is the package itself.
 
 ```typescript
-import { i18nCoreInit, i18nInit, type I18nLanguageDetector } from "@aidc-toolkit/core";
+import { i18nCoreInit, i18nextInstance, i18nInit, type I18nLanguageDetector } from "@aidc-toolkit/core";
 import { i18nDependency1Init } from "@aidc-toolkit/dependency1";
 import { i18nDependency2Init } from "@aidc-toolkit/dependency2";
-import i18next, { type i18n, type Resource } from "i18next";
+import type { ParseKeys, Resource } from "i18next";
 import enLocaleResources from "./en/locale-resources.js";
 import frLocaleResources from "./fr/locale-resources.js";
 
-const packageNS = "aidct_package";
+/**
+ * Package namespace.
+ */
+export const packageNS = "aidct_package";
 
 /**
- * Locale strings type is extracted from the English locale strings object.
+ * Package parse keys.
+ */
+export type PackageParseKeys = ParseKeys<typeof packageNS>;
+
+/**
+ * Locale resources type is extracted from the English locale strings object.
  */
 export type PackageLocaleResources = typeof enLocaleResources;
 
@@ -63,8 +71,10 @@ const packageResourceBundle = {
   }
 };
 
-// Explicit type is necessary because type can't be inferred without additional references.
-export const i18nextPackage: i18n = i18next.createInstance();
+/**
+ * Package i18next translator function.
+ */
+export const i18nextPackageT = i18nextInstance.getFixedT(null, packageNS);
 
 /**
  * Initialize internationalization.
@@ -79,7 +89,7 @@ export const i18nextPackage: i18n = i18next.createInstance();
  * Package resource bundle.
  */
 export async function i18nPackageInit(languageDetector: I18nLanguageDetector, debug = false): Promise<Resource> {
-  return i18nInit(i18nextPackage, languageDetector, debug, packageNS, packageResourceBundle, i18nCoreInit, i18nDependency2Init, i18nDependency1Init);
+  return i18nInit(languageDetector, debug, packageResourceBundle, i18nCoreInit, i18nUtilityInit, i18nGS1Init);
 }
 ```
 
@@ -87,9 +97,9 @@ The resource types are declared in `i18next.d.ts` or similar:
 
 ```typescript
 import type { CoreLocaleResources } from "@aidc-toolkit/core";
-import type { Dependency1LocaleStrings } from "@aidc-toolkit/dependency1";
-import type { Dependency2LocaleStrings } from "@aidc-toolkit/dependency2";
-import type { PackageLocaleStrings } from "./i18n";
+import type { Dependency1LocaleResources } from "@aidc-toolkit/dependency1";
+import type { Dependency2LocaleResources } from "@aidc-toolkit/dependency2";
+import type { DemoLocaleResources } from "./i18n.js";
 
 /**
  * Internationalization module.
@@ -99,12 +109,29 @@ declare module "i18next" {
      * Custom type options for this package.
      */
     interface CustomTypeOptions {
-        defaultNS: "aidct_package";
+        /**
+         * Resources override.
+         */
         resources: {
-            aidct_core: CoreLocaleResources;
-            aidct_dependency1: Dependency1LocaleStrings;
-            aidct_dependency2: Dependency2LocaleStrings;
-            aidct_package: PackageLocaleStrings;
+          /**
+           * Core locale resources.
+           */
+          aidct_core: CoreLocaleResources;
+  
+          /**
+           * Dependency 1 locale resources.
+           */
+          aidct_dependency1: UtilityLocaleResources;
+  
+          /**
+           * Dependency 2 locale resources.
+           */
+          aidct_dependency2: GS1LocaleResources;
+  
+          /**
+           * Package locale resources.
+           */
+          aidct_package: AppExtensionLocaleResources;
         };
     }
 }
@@ -121,9 +148,7 @@ Language detection is available for the following environments:
   - Command-line or helper applications
 - [Web browser](#web-browser)
 
-When a package's `i18next` object is initialized:
-
-Language detection starts with the full locale as provided by the environment then falls back as follows:
+When the global `i18nextInstance` object is initialized, language detection starts with the full locale as provided by the environment then falls back as follows:
 
 - the full locale minus the regional variant if any;
 - the full locale minus the regional variant and the region if any; and
@@ -152,11 +177,11 @@ import { I18nLanguageDetectors } from "@aidc-toolkit/core";
 import { StrictMode } from "react";
 import { createRoot } from "react-dom/client";
 import { App } from "./App.jsx";
-import { i18nPackageInit, i18nextPackage } from "./locale/i18n.js";
+import { i18nPackageInit, i18nextPackageT } from "./locale/i18n.js";
 
 i18nPackageInit(I18nLanguageDetectors.Browser).then(() => {
     // Set the page title.
-    document.title = i18nextPackage.t("App.title");
+    document.title = i18nextPackageT("App.title");
 
     createRoot(document.getElementById("root")!).render(
         <StrictMode>
@@ -182,16 +207,9 @@ Parts of the AIDC Toolkit require persistent application data management, but th
 - Server-based applications use a database, which may have a strict schema.
 - Other applications may use a different mechanism entirely, such as storing content in an XML node in a document.
 
-The application data management functionality in this package provides a simple and consistent mechanism for managing application data. While not suitable for high-volumne or transactional data, it's sufficient for most applications that require simple key-value storage.
+The application data management functionality in this package provides a simple and consistent mechanism for managing application data. While not suitable for high-volume or transactional data, it's sufficient for most applications that require simple key-value storage.
 
-The [`AppData`](https://aidc-toolkit.com/v1.0/api/Core/type-aliases/AppData.html) type alias is a simple constrained type of `string`, `number`, `boolean`, or `object`. An object type must be one of:
-
-- `Date`;
-- `Uint8Array`;
-- array of `AppData` or `undefined`; or
-- object containing only `AppData` or `undefined`
-
-Limitations in TypeScript prevent the use of recursive types and string index signatures, so there is no type enforcement beyond the basic type checks.
+The [`AppData`](https://aidc-toolkit.com/v1.0/api/Core/type-aliases/AppData.html) type alias is a constrained type of `string`, `number`, `boolean`, `Date`, `Uint8Array`, array of `AppData`, or object consisting of `AppData` properties.
 
 Two functions `encodeAppData()` and `decodeAppData()` are provided to convert between `AppData` and JSON. These enhance the normal JSON serialization/deserialization rules by:
 
@@ -204,14 +222,16 @@ Internally, each storage provider defines whether it supports binary data native
 
 All storage providers take a path argument, which defines an implementation-specific location for the data. The following storage providers are provided by default:
 
-- [`LocalAppDataStorage`](https://aidc-toolkit.com/v1.0/api/Core/variables/LocalAppDataStorage.html)
-  - Not a class, but rather a `Promise` of a constructor to one of the following implementations:
-    - File-based storage
-      - Supports binary data.
-      - Maps the path to an absolute or relative directory.
+- [`LocalAppDataStorage`](https://aidc-toolkit.com/v1.0/api/Core/classes/LocalAppDataStorage.html)
+  - Determines an appropriate implementation based on the local environment. One of:
     - Browser-based storage
       - Does not support binary data.
       - Maps the path by prepending it plus `/` to the key for use in [`localStorage`](https://developer.mozilla.org/en-US/docs/Web/API/Window/localStorage).
+    - File-based storage
+      - Supports binary data.
+      - Maps the path to an absolute or relative directory.
+    - No-op storage
+      - Swallows all requests without error.
 - [`RemoteAppDataStorage`](https://aidc-toolkit.com/v1.0/api/Core/classes/RemoteAppDataStorage.html)
   - Read-only.
   - Supports binary data.

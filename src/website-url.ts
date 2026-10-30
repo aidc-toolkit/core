@@ -2,9 +2,9 @@ import { LocalAppDataStorage } from "./local-app-data-storage.js";
 import { parseVersion } from "./parse-version.js";
 
 /**
- * Default alpha URL (Vite development server URL) if no local resources found.
+ * Default alpha URL (VitePress preview URL) if no local resources found.
  */
-const DEFAULT_ALPHA_URL = "http://localhost:5173";
+const DEFAULT_ALPHA_URL = "http://localhost:4173";
 
 /**
  * Configuration path, expected to be present in development but not necessarily in production.
@@ -20,19 +20,26 @@ const LOCAL_RESOURCES_KEY = "resources.local";
  * Local resources.
  */
 interface LocalResources {
-    alphaURL: string;
+    /**
+     * Alpha URL.
+     */
+    alphaURL?: string;
 }
 
 /**
- * Alpha URL. Reads from local application storage, path "config", key "resources.local", if present, otherwise defaults
- * to Vite development server URL.
+ * Determine the alpha URL.
+ *
+ * @returns
+ * Alpha URL.
  */
-export const ALPHA_URL = LocalAppDataStorage.then(async LocalAppDataStorage =>
-    new LocalAppDataStorage(CONFIGURATION_PATH).read(LOCAL_RESOURCES_KEY)
-).then(resources =>
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion -- Fallback works regardless of type.
-    (resources as (LocalResources | undefined))?.alphaURL ?? DEFAULT_ALPHA_URL
-);
+export async function alphaURL(): Promise<string> {
+    return LocalAppDataStorage.get(CONFIGURATION_PATH).then(async localAppDataStorage =>
+        localAppDataStorage.read(LOCAL_RESOURCES_KEY)
+    ).then(resources =>
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion -- Fallback works regardless of type.
+        (resources as (LocalResources | undefined))?.alphaURL ?? DEFAULT_ALPHA_URL
+    );
+}
 
 /**
  * AIDC Toolkit website base URL.
