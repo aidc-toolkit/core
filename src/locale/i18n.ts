@@ -1,4 +1,6 @@
 import i18next, {
+    type DefaultNamespace,
+    type i18n,
     type LanguageDetectorModule,
     type Namespace,
     type Newable,
@@ -11,11 +13,6 @@ import I18nextBrowserLanguageDetector from "i18next-browser-languagedetector";
 import I18nextCLILanguageDetector from "i18next-cli-language-detector";
 import enLocaleResources from "./en/locale-resources.js";
 import frLocaleResources from "./fr/locale-resources.js";
-
-/**
- * Default language.
- */
-export const DEFAULT_LANGUAGE = "en";
 
 /**
  * Locale strings type for generic manipulation.
@@ -64,14 +61,34 @@ function toLowerCase(value: unknown): string {
 }
 
 /**
- * Core namespace.
+ * Determine if a key exists.
+ *
+ * @param i18next
+ * Internationalization object.
+ *
+ * @param key
+ * Key to check.
+ *
+ * @param options
+ * Options.
+ *
+ * @returns
+ * True if key exists in the specified namespace with the given options.
  */
-export const coreNS = "aidct_core";
+export function isI18nParseKey<
+    TNamespace extends Namespace = DefaultNamespace,
+    TNamespaceOptions extends TOptions = TNamespace extends DefaultNamespace ?
+        {
+            ns?: DefaultNamespace;
+        } :
+        {
+            ns: TNamespace;
+        }
+>(i18next: i18n, key: string, options?: TNamespaceOptions): key is ParseKeys<TNamespace, TNamespaceOptions> {
+    return i18next.exists(key, options);
+}
 
-/**
- * Core parse keys.
- */
-export type CoreParseKeys = ParseKeys<typeof coreNS>;
+export const coreNS = "aidct_core";
 
 /**
  * Locale resources type is extracted from the English locale resources object.
@@ -90,43 +107,15 @@ export const coreResourceBundle: Resource = {
     }
 };
 
-/**
- * Shared i18next instance.
- */
-export const i18nextInstance = i18next.createInstance();
-
-/**
- * Determine if a key exists.
- *
- * @param ns
- * Namespace.
- *
- * @param key
- * Key to check.
- *
- * @param options
- * Options.
- *
- * @returns
- * True if key exists in the specified namespace with the given options.
- */
-export function isI18nParseKey<
-    TNamespace extends Namespace,
-    TNamespaceOptions extends TOptions = {}
->(ns: TNamespace, key: string, options?: TNamespaceOptions): key is ParseKeys<TNamespace, TNamespaceOptions> {
-    return i18nextInstance.exists(key, {
-        ns,
-        ...options
-    });
-}
-
-/**
- * Core i18next translator function.
- */
-export const i18nextCoreT = i18nextInstance.getFixedT(null, coreNS);
+// Explicit type is necessary because type can't be inferred without additional references.
+export const i18nextCore: i18n = i18next.createInstance();
 
 /**
  * Initialize internationalization.
+ *
+ * @param i18next
+ * Internationalization object. As multiple objects exist, this parameter represents the one for the module for which
+ * internationalization is being initialized.
  *
  * @param languageDetector
  * Language detector.
@@ -134,8 +123,11 @@ export const i18nextCoreT = i18nextInstance.getFixedT(null, coreNS);
  * @param debug
  * Debug setting.
  *
- * @param resourceBundle
- * Resource bundle.
+ * @param defaultNS
+ * Default namespace.
+ *
+ * @param defaultResourceBundle
+ * Default resource bundle.
  *
  * @param i18nDependencyInits
  * Dependency internationalization initialization functions.
@@ -143,11 +135,11 @@ export const i18nextCoreT = i18nextInstance.getFixedT(null, coreNS);
  * @returns
  * Default resource bundle.
  */
-export async function i18nInit(languageDetector: I18nLanguageDetector, debug: boolean, resourceBundle: Resource, ...i18nDependencyInits: Array<(languageDetector: I18nLanguageDetector, debug: boolean) => Promise<Resource>>): Promise<Resource> {
+export async function i18nInit(i18next: i18n, languageDetector: I18nLanguageDetector, debug: boolean, defaultNS: string, defaultResourceBundle: Resource, ...i18nDependencyInits: Array<(languageDetector: I18nLanguageDetector, debug: boolean) => Promise<Resource>>): Promise<Resource> {
     let result;
 
     // Initialization may be called more than once.
-    if (!i18nextInstance.isInitialized) {
+    if (!i18next.isInitialized) {
         const mergedResourceBundle: Resource = {};
 
         /**
@@ -177,7 +169,7 @@ export async function i18nInit(languageDetector: I18nLanguageDetector, debug: bo
             }
         }
 
-        mergeResourceBundle(resourceBundle);
+        mergeResourceBundle(defaultResourceBundle);
 
         let initDependencies: Promise<void> | undefined = undefined;
 
@@ -188,25 +180,26 @@ export async function i18nInit(languageDetector: I18nLanguageDetector, debug: bo
             initDependencies = initDependencies === undefined ? initDependency : initDependencies.then(async () => initDependency);
         }
 
-        const initThis = i18nextInstance.use(languageDetector).init({
+        const initThis = i18next.use(languageDetector).init({
             debug,
+            defaultNS,
             resources: mergedResourceBundle,
             // Allow fallback by removing variant code then country code until match is found.
             nonExplicitSupportedLngs: true,
-            // Fallback to default language.
-            fallbackLng: DEFAULT_LANGUAGE,
+            // Fallback to first language defined.
+            fallbackLng: Object.keys(mergedResourceBundle)[0],
             detection: {
                 // Disabling cache allows read but requires explicit saving of i18nextLng attribute (e.g., via UI).
                 caches: []
             }
         }).then(() => {
             // Add toLowerCase formatter.
-            i18nextInstance.services.formatter?.add("toLowerCase", toLowerCase);
-        }).then(() => resourceBundle);
+            i18next.services.formatter?.add("toLowerCase", toLowerCase);
+        }).then(() => defaultResourceBundle);
 
         result = initDependencies === undefined ? initThis : initDependencies.then(async () => initThis);
     } else {
-        result = resourceBundle;
+        result = defaultResourceBundle;
     }
 
     return result;
@@ -225,5 +218,5 @@ export async function i18nInit(languageDetector: I18nLanguageDetector, debug: bo
  * Core resource bundle.
  */
 export async function i18nCoreInit(languageDetector: I18nLanguageDetector, debug = false): Promise<Resource> {
-    return i18nInit(languageDetector, debug, coreResourceBundle);
+    return i18nInit(i18nextCore, languageDetector, debug, coreNS, coreResourceBundle);
 }

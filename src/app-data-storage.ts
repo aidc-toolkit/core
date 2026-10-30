@@ -2,51 +2,9 @@ import { type AppData, decodeAppData, encodeAppData } from "./app-data.js";
 import type { Promisable } from "./type.js";
 
 /**
- * Generic read-only application data storage delegate.
- */
-export abstract class ReadOnlyAppDataStorageDelegate {
-    /**
-     * True if binary data is natively supported.
-     */
-    readonly #supportsBinary: boolean;
-
-    /**
-     * Constructor.
-     *
-     * @param supportsBinary
-     * True if binary data is natively supported.
-     */
-    protected constructor(supportsBinary: boolean) {
-        this.#supportsBinary = supportsBinary;
-    }
-
-    /**
-     * Determine if binary data is natively supported.
-     */
-    get supportsBinary(): boolean {
-        return this.#supportsBinary;
-    }
-
-    /**
-     * Read a string or binary data from persistent storage.
-     *
-     * @param key
-     * Storage key qualified by path.
-     *
-     * @param asBinary
-     * True if binary data is requested, false or undefined if string data is requested. Ignored if binary data is not
-     * supported.
-     *
-     * @returns
-     * String or binary data or undefined if not found.
-     */
-    abstract doRead(key: string, asBinary: boolean | undefined): Promisable<string | Uint8Array | undefined>;
-}
-
-/**
  * Generic read-only application data storage.
  */
-export abstract class ReadOnlyAppDataStorage<TDelegate extends ReadOnlyAppDataStorageDelegate> {
+export abstract class ReadOnlyAppDataStorage<SupportsBinary extends boolean> {
     /**
      * Extension to identify binary data.
      */
@@ -58,9 +16,9 @@ export abstract class ReadOnlyAppDataStorage<TDelegate extends ReadOnlyAppDataSt
     protected static readonly JSON_EXTENSION = ".json";
 
     /**
-     * Delegate.
+     * True if binary data is supported natively.
      */
-    readonly #delegate: TDelegate;
+    readonly #supportsBinary: SupportsBinary;
 
     /**
      * Storage path prepended to each key.
@@ -70,29 +28,22 @@ export abstract class ReadOnlyAppDataStorage<TDelegate extends ReadOnlyAppDataSt
     /**
      * Constructor.
      *
-     * @param delegate
-     * Delegate.
+     * @param supportsBinary
+     * True if binary data is supported.
      *
      * @param path
      * Storage path prepended to each key along with '/' if defined, empty string if not.
      */
-    protected constructor(delegate: TDelegate, path?: string) {
-        this.#delegate = delegate;
+    protected constructor(supportsBinary: SupportsBinary, path?: string) {
+        this.#supportsBinary = supportsBinary;
         this.#path = path !== undefined ? `${path}/` : "";
-    }
-
-    /**
-     * Get the delegate.
-     */
-    get delegate(): TDelegate {
-        return this.#delegate;
     }
 
     /**
      * Determine if binary data is supported.
      */
-    get supportsBinary(): boolean {
-        return this.delegate.supportsBinary;
+    get supportsBinary(): SupportsBinary {
+        return this.#supportsBinary;
     }
 
     /**
@@ -124,6 +75,21 @@ export abstract class ReadOnlyAppDataStorage<TDelegate extends ReadOnlyAppDataSt
     }
 
     /**
+     * Read a string or binary data from persistent storage.
+     *
+     * @param key
+     * Storage key (file path in Node.js, key in localStorage).
+     *
+     * @param asBinary
+     * True if binary data is requested, false or undefined if string data is requested. Ignored if binary data is not
+     * supported.
+     *
+     * @returns
+     * String or binary data or undefined if not found.
+     */
+    protected abstract doRead(key: string, asBinary: boolean | undefined): Promisable<(SupportsBinary extends true ? string | Uint8Array : string) | undefined>;
+
+    /**
      * Read application data from storage.
      *
      * @param pathKey
@@ -137,40 +103,27 @@ export abstract class ReadOnlyAppDataStorage<TDelegate extends ReadOnlyAppDataSt
      * Application data or undefined if not found.
      */
     async read(pathKey: string, asBinary?: boolean): Promise<AppData | undefined> {
-        const data = await this.delegate.doRead(this.fullKey(pathKey, asBinary === true), asBinary);
+        const data = await this.doRead(this.fullKey(pathKey, asBinary === true), asBinary);
 
         return typeof data === "string" ? decodeAppData(data) : data;
     }
 }
 
 /**
- * Generic read/write application data storage delegate.
+ * Generic read/write application data storage.
  */
-export abstract class AppDataStorageDelegate extends ReadOnlyAppDataStorageDelegate {
+export abstract class AppDataStorage<SupportsBinary extends boolean> extends ReadOnlyAppDataStorage<SupportsBinary> {
     /**
-     * Write a string or binary data to persistent storage.
+     * Write a string or binary data in persistent storage.
      *
      * @param key
-     * Storage key qualified by path.
+     * Storage key (file path in Node.js, key in localStorage).
      *
      * @param data
      * String or binary data.
      */
-    abstract doWrite(key: string, data: string | Uint8Array): Promisable<void>;
+    protected abstract doWrite(key: string, data: SupportsBinary extends true ? string | Uint8Array : string): Promisable<void>;
 
-    /**
-     * Delete from persistent storage.
-     *
-     * @param key
-     * Storage key qualified by path.
-     */
-    abstract doDelete(key: string): Promisable<void>;
-}
-
-/**
- * Generic read/write application data storage.
- */
-export abstract class AppDataStorage<TDelegate extends AppDataStorageDelegate = AppDataStorageDelegate> extends ReadOnlyAppDataStorage<TDelegate> {
     /**
      * Write application data to storage.
      *
@@ -183,8 +136,20 @@ export abstract class AppDataStorage<TDelegate extends AppDataStorageDelegate = 
     async write(pathKey: string, appData: AppData): Promise<void> {
         const isBinary = appData instanceof Uint8Array;
 
-        await this.delegate.doWrite(this.fullKey(pathKey, isBinary), this.supportsBinary && isBinary ? appData : encodeAppData(appData));
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion -- Type is determined by supports binary flag.
+        await this.doWrite(this.fullKey(pathKey, isBinary), (this.supportsBinary && isBinary ?
+            appData :
+            encodeAppData(appData)
+        ) as Parameters<typeof this.doWrite>[1]);
     }
+
+    /**
+     * Delete from persistent storage.
+     *
+     * @param key
+     * Storage key (file path in Node.js, key in localStorage).
+     */
+    protected abstract doDelete(key: string): Promisable<void>;
 
     /**
      * Delete application data from persistent storage.
@@ -196,6 +161,6 @@ export abstract class AppDataStorage<TDelegate extends AppDataStorageDelegate = 
      * True if key is to binary data, false or undefined if to string data. Ignored if binary data is not supported.
      */
     async delete(pathKey: string, asBinary?: boolean): Promise<void> {
-        await this.delegate.doDelete(this.fullKey(pathKey, asBinary === true));
+        await this.doDelete(this.fullKey(pathKey, asBinary === true));
     }
 }

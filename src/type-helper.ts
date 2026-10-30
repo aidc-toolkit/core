@@ -154,3 +154,16 @@ export function propertyAs<T extends object, K extends keyof T, TAsType extends 
         {}
     ) as ReturnType<typeof propertyAs<T, K, TAsType>>;
 }
+
+/**
+ * Determine if argument is nullish. Application extension may pass `null` or `undefined` to missing parameters.
+ *
+ * @param argument
+ * Argument.
+ *
+ * @returns
+ * True if argument is undefined or null.
+ */
+export function isNullish(argument: unknown): argument is null | undefined {
+    return argument === null || argument === undefined;
+}
