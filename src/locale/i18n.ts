@@ -179,7 +179,7 @@ export async function i18nInit(languageDetector: I18nLanguageDetector, debug: bo
 
         mergeResourceBundle(resourceBundle);
 
-        let initDependencies: Promise<void> | undefined = undefined;
+        let initDependencies;
 
         // Build chain to initialize dependencies and merge their resource bundles.
         for (const i18nDependencyInit of i18nDependencyInits) {
