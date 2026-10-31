@@ -163,7 +163,7 @@ Caching (typically via the `i18nextLng` attribute in some form of storage) is di
 
 #### Command-Line Interface
 
-Language detection is implemented using [I18nextCLILanguageDetector](https://github.com/neet/i18next-cli-language-detector), which is exposed as [i18nCoreCLILanguageDetector](https://aidc-toolkit.com/v1.0/api/Core/variables/i18nCoreCLILanguageDetector.html).
+Language detection is implemented using [I18nextCLILanguageDetector](https://github.com/neet/i18next-cli-language-detector), which is exposed as [i18nCoreCLILanguageDetector](https://aidc-toolkit.com/v2.0/api/Core/variables/i18nCoreCLILanguageDetector.html).
 
 Initializing internationalization for a command-line interface application is straightforward:
 
@@ -182,7 +182,7 @@ await i18nPackageInit(i18next.use(i18nCoreCLILanguageDetector)).then(() => {
 
 #### Web Browser
 
-Language detection is implemented using [I18nextBrowserLanguageDetector](https://github.com/i18next/i18next-browser-languageDetector), which is exposed as [i18nCoreBrowserLanguageDetector](https://aidc-toolkit.com/v1.0/api/Core/variables/i18nCoreBrowserLanguageDetector.html).
+Language detection is implemented using [I18nextBrowserLanguageDetector](https://github.com/i18next/i18next-browser-languageDetector), which is exposed as [i18nCoreBrowserLanguageDetector](https://aidc-toolkit.com/v2.0/api/Core/variables/i18nCoreBrowserLanguageDetector.html).
 
 Initializing internationalization for a web browser requires awaiting the fulfillment of the `Promise` returned by the call to the initialization function before rendering any content. For example, in the React framework, this would be done before creating the root:
 
@@ -224,20 +224,20 @@ Parts of the AIDC Toolkit require persistent application data management, but th
 
 The application data management functionality in this package provides a simple and consistent mechanism for managing application data. While not suitable for high-volume or transactional data, it's sufficient for most applications that require simple key-value storage.
 
-The [`AppData`](https://aidc-toolkit.com/v1.0/api/Core/type-aliases/AppData.html) type alias is a constrained type of `string`, `number`, `boolean`, `Date`, `Uint8Array`, array of `AppData`, or object consisting of `AppData` properties.
+The [`AppData`](https://aidc-toolkit.com/v2.0/api/Core/type-aliases/AppData.html) type alias is a constrained type of `string`, `number`, `boolean`, `Date`, `Uint8Array`, array of `AppData`, or object consisting of `AppData` properties.
 
 Two functions `encodeAppData()` and `decodeAppData()` are provided to convert between `AppData` and JSON. These enhance the normal JSON serialization/deserialization rules by:
 
 - encoding `Date` objects as ISO 8601 strings preceded by the string "dateTime:"; and
 - encoding `Uint8Array` objects as [Base64](https://developer.mozilla.org/en-US/docs/Glossary/Base64) strings preceded by the string "binary:".
 
-The functions are generally not called directly. Rather, they are called automatically by the [`ReadOnlyAppDataStorage`](https://aidc-toolkit.com/v1.0/api/Core/classes/ReadOnlyAppDataStorage.html) and [`AppDataStorage`](https://aidc-toolkit.com/v1.0/api/Core/classes/AppDataStorage.html) classes, which are used to manage application data in the AIDC Toolkit packages.
+The functions are generally not called directly. Rather, they are called automatically by the [`ReadOnlyAppDataStorage`](https://aidc-toolkit.com/v2.0/api/Core/classes/ReadOnlyAppDataStorage.html) and [`AppDataStorage`](https://aidc-toolkit.com/v2.0/api/Core/classes/AppDataStorage.html) classes, which are used to manage application data in the AIDC Toolkit packages.
 
 Internally, each storage provider defines whether it supports binary data natively. If so, a request to read binary data will return raw content as `Uint8Array` from the underlying storage mechanism and a request to write binary data will write the `Uint8Array` as-is. This applies only to top-level read and write operations, not to `Uint8Array` values stored in nested objects.
 
 All storage providers take a path argument, which defines an implementation-specific location for the data. The following storage providers are provided by default:
 
-- [`LocalAppDataStorage`](https://aidc-toolkit.com/v1.0/api/Core/classes/LocalAppDataStorage.html)
+- [`LocalAppDataStorage`](https://aidc-toolkit.com/v2.0/api/Core/classes/LocalAppDataStorage.html)
   - Determines an appropriate implementation based on the local environment. One of:
     - Browser-based storage
       - Does not support binary data.
@@ -247,11 +247,11 @@ All storage providers take a path argument, which defines an implementation-spec
       - Maps the path to an absolute or relative directory.
     - No-op storage
       - Swallows all requests without error.
-- [`RemoteAppDataStorage`](https://aidc-toolkit.com/v1.0/api/Core/classes/RemoteAppDataStorage.html)
+- [`RemoteAppDataStorage`](https://aidc-toolkit.com/v2.0/api/Core/classes/RemoteAppDataStorage.html)
   - Read-only.
   - Supports binary data.
   - Maps the path to a base URL.
 
 ## Caching
 
-The [`Cache`](https://aidc-toolkit.com/v1.0/api/Core/classes/Cache.html) class provides a simple cache that can be used to maintain synchronization with an external source.
+The [`Cache`](https://aidc-toolkit.com/v2.0/api/Core/classes/Cache.html) class provides a simple cache that can be used to maintain synchronization with an external source.
