@@ -1,16 +1,16 @@
-import type { CoreLocaleResources } from "./i18n.js";
+import type { I18nLocaleResources } from "./i18n.js";
 
 /**
- * Internationalization module.
+ * Internationalization module augmentation.
  */
 declare module "i18next" {
     /**
      * Custom type options for this package.
      */
     interface CustomTypeOptions {
-        defaultNS: "aidct_core";
-        resources: {
-            aidct_core: CoreLocaleResources;
-        };
+        /**
+         * Resources override.
+         */
+        resources: I18nLocaleResources;
     }
 }
