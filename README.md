@@ -37,10 +37,10 @@ All AIDC Toolkit packages require internationalization. The localization functio
 Packages initialize their resources as follows in `i18n.ts` or similar. Note that "dependency1" and "dependency2" are placeholders for the names of the packages on which the package depends, and "package" is the package itself.
 
 ```typescript
-import { i18nCoreInit, i18nextInstance, i18nInit, type I18nLanguageDetector } from "@aidc-toolkit/core";
+import { i18nCoreInit, i18nInit } from "@aidc-toolkit/core";
 import { i18nDependency1Init } from "@aidc-toolkit/dependency1";
 import { i18nDependency2Init } from "@aidc-toolkit/dependency2";
-import type { ParseKeys, Resource } from "i18next";
+import type { i18n, ParseKeys, Resource, TFunction } from "i18next";
 import enLocaleResources from "./en/locale-resources.js";
 import frLocaleResources from "./fr/locale-resources.js";
 
@@ -55,7 +55,7 @@ export const packageNS = "aidct_package";
 export type PackageParseKeys = ParseKeys<typeof packageNS>;
 
 /**
- * Locale resources type is extracted from the English locale strings object.
+ * Locale resources type is extracted from the English locale resources object.
  */
 export type PackageLocaleResources = typeof enLocaleResources;
 
@@ -74,13 +74,13 @@ const packageResourceBundle = {
 /**
  * Package i18next translator function.
  */
-export const i18nextPackageT = i18nextInstance.getFixedT(null, packageNS);
+export let i18nextPackageT: TFunction<typeof packageNS>;
 
 /**
  * Initialize internationalization.
  *
- * @param languageDetector
- * Language detector.
+ * @param i18next
+ * Internationalization instance.
  *
  * @param debug
  * Debug setting.
@@ -88,8 +88,11 @@ export const i18nextPackageT = i18nextInstance.getFixedT(null, packageNS);
  * @returns
  * Package resource bundle.
  */
-export async function i18nPackageInit(languageDetector: I18nLanguageDetector, debug = false): Promise<Resource> {
-  return i18nInit(languageDetector, debug, packageResourceBundle, i18nCoreInit, i18nUtilityInit, i18nGS1Init);
+export async function i18nPackageInit(i18next: i18n, debug = false): Promise<Resource> {
+    // Bind translator function to i18next.
+    i18nextPackageT = i18next.getFixedT(null, packageNS);
+
+  return i18nInit(i18next, debug, packageResourceBundle, i18nCoreInit, i18nUtilityInit, i18nGS1Init);
 }
 ```
 
@@ -99,7 +102,7 @@ The resource types are declared in `i18next.d.ts` or similar:
 import type { CoreLocaleResources } from "@aidc-toolkit/core";
 import type { Dependency1LocaleResources } from "@aidc-toolkit/dependency1";
 import type { Dependency2LocaleResources } from "@aidc-toolkit/dependency2";
-import type { DemoLocaleResources } from "./i18n.js";
+import type { PackageLocaleResources } from "./i18n.js";
 
 /**
  * Internationalization module.
@@ -121,17 +124,17 @@ declare module "i18next" {
           /**
            * Dependency 1 locale resources.
            */
-          aidct_dependency1: UtilityLocaleResources;
+          aidct_dependency1: Dependency1LocaleResources;
   
           /**
            * Dependency 2 locale resources.
            */
-          aidct_dependency2: GS1LocaleResources;
+          aidct_dependency2: Dependency2LocaleResources;
   
           /**
            * Package locale resources.
            */
-          aidct_package: AppExtensionLocaleResources;
+          aidct_package: PackageLocaleResources;
         };
     }
 }
@@ -148,7 +151,9 @@ Language detection is available for the following environments:
   - Command-line or helper applications
 - [Web browser](#web-browser)
 
-When the global `i18nextInstance` object is initialized, language detection starts with the full locale as provided by the environment then falls back as follows:
+Language detection is not part of the initialization process; the client application is expected to install a language detector prior to initialization.
+
+When the internationalization instance object is initialized, it is configured so that language detection starts with the full locale as provided by the environment then falls back as follows:
 
 - the full locale minus the regional variant if any;
 - the full locale minus the regional variant and the region if any; and
@@ -158,38 +163,48 @@ Caching (typically via the `i18nextLng` attribute in some form of storage) is di
 
 #### Command-Line Interface
 
-Language detection is implemented using [I18nextCLILanguageDetector](https://github.com/neet/i18next-cli-language-detector).
+Language detection is implemented using [I18nextCLILanguageDetector](https://github.com/neet/i18next-cli-language-detector), which is exposed as [i18nCoreCLILanguageDetector](https://aidc-toolkit.com/v1.0/api/Core/variables/i18nCoreCLILanguageDetector.html).
 
 Initializing internationalization for a command-line interface application is straightforward:
 
 ```typescript
-await i18nPackageInit(I18nLanguageDetectors.CLI);
+import { getLogger, i18nCoreCLILanguageDetector } from "@aidc-toolkit/core";
+
+const logger = getLogger(LogLevels.Info);
+
+await i18nPackageInit(i18next.use(i18nCoreCLILanguageDetector)).then(() => {
+    // Run application here.
+}).catch((e: unknown) => {
+    logger.error("Package failed", e);
+    process.exit(1);
+});
 ```
 
 #### Web Browser
 
-Language detection is implemented using [I18nextBrowserLanguageDetector](https://github.com/i18next/i18next-browser-languageDetector).
+Language detection is implemented using [I18nextBrowserLanguageDetector](https://github.com/i18next/i18next-browser-languageDetector), which is exposed as [i18nCoreBrowserLanguageDetector](https://aidc-toolkit.com/v1.0/api/Core/variables/i18nCoreBrowserLanguageDetector.html).
 
 Initializing internationalization for a web browser requires awaiting the fulfillment of the `Promise` returned by the call to the initialization function before rendering any content. For example, in the React framework, this would be done before creating the root:
 
 ```typescript jsx
-import { I18nLanguageDetectors } from "@aidc-toolkit/core";
+import { i18nCoreBrowserLanguageDetector } from "@aidc-toolkit/core";
+import i18next from "i18next";
 import { StrictMode } from "react";
 import { createRoot } from "react-dom/client";
 import { App } from "./App.jsx";
 import { i18nPackageInit, i18nextPackageT } from "./locale/i18n.js";
 
-i18nPackageInit(I18nLanguageDetectors.Browser).then(() => {
-    // Set the page title.
+i18nPackageInit(i18next.use(i18nCoreBrowserLanguageDetector)).then(() => {
     document.title = i18nextPackageT("App.title");
-
+  
     createRoot(document.getElementById("root")!).render(
         <StrictMode>
-            <App />
+          <App />
         </StrictMode>
     );
 }).catch((e: unknown) => {
     console.error(e);
+
     alert(e);
 });
 ```
