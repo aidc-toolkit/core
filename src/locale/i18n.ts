@@ -1,14 +1,11 @@
 import i18next, {
-    type LanguageDetectorModule,
+    type i18n,
     type Namespace,
-    type Newable,
-    type NewableModule,
     type ParseKeys,
     type Resource,
+    type TFunction,
     type TOptions
 } from "i18next";
-import I18nextBrowserLanguageDetector from "i18next-browser-languagedetector";
-import I18nextCLILanguageDetector from "i18next-cli-language-detector";
 import enLocaleResources from "./en/locale-resources.js";
 import frLocaleResources from "./fr/locale-resources.js";
 
@@ -23,29 +20,6 @@ export const DEFAULT_LANGUAGE = "en";
 export interface LocaleResources {
     [key: string]: LocaleResources | string | undefined;
 }
-
-/**
- * Internationalization language detectors.
- */
-export const I18nLanguageDetectors = {
-    /**
-     * Command-line interface (e.g., unit tests).
-     */
-    // TODO Refactor when https://github.com/neet/i18next-cli-language-detector/issues/281 resolved.
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion -- Per above.
-    CLI: I18nextCLILanguageDetector as unknown as LanguageDetectorModule,
-
-    /**
-     * Web browser.
-     */
-    Browser: I18nextBrowserLanguageDetector as Newable<LanguageDetectorModule>
-} as const;
-
-/**
- * Internationalization language detector.
- */
-export type I18nLanguageDetector =
-    LanguageDetectorModule | Newable<LanguageDetectorModule> | NewableModule<LanguageDetectorModule>;
 
 /**
  * Convert a string to lower case, skipping words that are all upper case.
@@ -91,9 +65,9 @@ export const coreResourceBundle: Resource = {
 };
 
 /**
- * Shared i18next instance.
+ * Internationalization instance.
  */
-export const i18nextInstance = i18next.createInstance();
+let i18nextInstance = i18next;
 
 /**
  * Determine if a key exists.
@@ -121,15 +95,10 @@ export function isI18nParseKey<
 }
 
 /**
- * Core i18next translator function.
- */
-export const i18nextCoreT = i18nextInstance.getFixedT(null, coreNS);
-
-/**
  * Initialize internationalization.
  *
- * @param languageDetector
- * Language detector.
+ * @param i18next
+ * Internationalization instance.
  *
  * @param debug
  * Debug setting.
@@ -141,13 +110,13 @@ export const i18nextCoreT = i18nextInstance.getFixedT(null, coreNS);
  * Dependency internationalization initialization functions.
  *
  * @returns
- * Default resource bundle.
+ * Resource bundle.
  */
-export async function i18nInit(languageDetector: I18nLanguageDetector, debug: boolean, resourceBundle: Resource, ...i18nDependencyInits: Array<(languageDetector: I18nLanguageDetector, debug: boolean) => Promise<Resource>>): Promise<Resource> {
+export async function i18nInit(i18next: i18n, debug: boolean, resourceBundle: Resource, ...i18nDependencyInits: Array<(i18next: i18n, debug: boolean) => Promise<Resource>>): Promise<Resource> {
     let result;
 
     // Initialization may be called more than once.
-    if (!i18nextInstance.isInitialized) {
+    if (!i18next.isInitialized) {
         const mergedResourceBundle: Resource = {};
 
         /**
@@ -183,12 +152,12 @@ export async function i18nInit(languageDetector: I18nLanguageDetector, debug: bo
 
         // Build chain to initialize dependencies and merge their resource bundles.
         for (const i18nDependencyInit of i18nDependencyInits) {
-            const initDependency = i18nDependencyInit(languageDetector, debug).then(mergeResourceBundle);
+            const initDependency = i18nDependencyInit(i18next, debug).then(mergeResourceBundle);
 
             initDependencies = initDependencies === undefined ? initDependency : initDependencies.then(async () => initDependency);
         }
 
-        const initThis = i18nextInstance.use(languageDetector).init({
+        const initThis = i18next.init({
             debug,
             resources: mergedResourceBundle,
             // Allow fallback by removing variant code then country code until match is found.
@@ -201,7 +170,7 @@ export async function i18nInit(languageDetector: I18nLanguageDetector, debug: bo
             }
         }).then(() => {
             // Add toLowerCase formatter.
-            i18nextInstance.services.formatter?.add("toLowerCase", toLowerCase);
+            i18next.services.formatter?.add("toLowerCase", toLowerCase);
         }).then(() => resourceBundle);
 
         result = initDependencies === undefined ? initThis : initDependencies.then(async () => initThis);
@@ -213,10 +182,15 @@ export async function i18nInit(languageDetector: I18nLanguageDetector, debug: bo
 }
 
 /**
+ * Core i18next translator function.
+ */
+export let i18nextCoreT: TFunction<typeof coreNS>;
+
+/**
  * Initialize internationalization.
  *
- * @param languageDetector
- * Language detector.
+ * @param i18next
+ * Internationalization instance.
  *
  * @param debug
  * Debug setting.
@@ -224,6 +198,12 @@ export async function i18nInit(languageDetector: I18nLanguageDetector, debug: bo
  * @returns
  * Core resource bundle.
  */
-export async function i18nCoreInit(languageDetector: I18nLanguageDetector, debug = false): Promise<Resource> {
-    return i18nInit(languageDetector, debug, coreResourceBundle);
+export async function i18nCoreInit(i18next: i18n, debug = false): Promise<Resource> {
+    // Bind instance.
+    i18nextInstance = i18next;
+
+    // Bind translator function to i18next.
+    i18nextCoreT = i18next.getFixedT(null, coreNS);
+
+    return i18nInit(i18next, debug, coreResourceBundle);
 }

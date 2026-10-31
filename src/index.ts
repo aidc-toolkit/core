@@ -33,3 +33,5 @@ export * from "./cache.js";
 export type * from "./hyperlink.js";
 
 export * from "./locale/i18n.js";
+export * from "./locale/cli-language-detector.js";
+export * from "./locale/browser-language-detector.js";
