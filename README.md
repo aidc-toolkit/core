@@ -50,25 +50,40 @@ import frLocaleResources from "./fr/locale-resources.js";
 export const packageNS = "aidct_package";
 
 /**
- * Package parse keys.
- */
-export type PackageParseKeys = ParseKeys<typeof packageNS>;
-
-/**
  * Locale resources type is extracted from the English locale resources object.
  */
 export type PackageLocaleResources = typeof enLocaleResources;
 
 /**
+ * Core locale resources augmentation.
+ */
+declare module "@aidc-toolkit/core" {
+    /**
+     * Internationalization locale resources.
+     */
+    export interface I18nLocaleResources {
+        /**
+         * Package locale resources.
+         */
+        [packageNS]: PackageLocaleResources;
+    }
+}
+
+/**
+ * Package parse keys.
+ */
+export type PackageParseKeys = ParseKeys<typeof packageNS>;
+
+/**
  * Package resource bundle.
  */
-const packageResourceBundle = {
-  en: {
-    aidct_package: enLocaleResources
-  },
-  fr: {
-    aidct_package: frLocaleResources
-  }
+export const packageResourceBundle: Resource = {
+    en: {
+        [packageNS]: enLocaleResources
+    },
+    fr: {
+        [packageNS]: frLocaleResources
+    }
 };
 
 /**
@@ -92,55 +107,32 @@ export async function i18nPackageInit(i18next: i18n, debug = false): Promise<Res
     // Bind translator function to i18next.
     i18nextPackageT = i18next.getFixedT(null, packageNS);
 
-  return i18nInit(i18next, debug, packageResourceBundle, i18nCoreInit, i18nUtilityInit, i18nGS1Init);
+    return i18nInit(i18next, debug, packageResourceBundle, i18nCoreInit, i18nDependency1Init, i18nDependency2Init);
 }
 ```
 
-The resource types are declared in `i18next.d.ts` or similar:
+Augmenting the `I18nLocaleResources` interface simplifies the augmentation of `CustomTypeOptions` in `i18next` by eliminating the need to define every resource on which the package depends. Accordingly, the resource types are declared in `i18next.d.ts` or similar as follows:
 
 ```typescript
-import type { CoreLocaleResources } from "@aidc-toolkit/core";
-import type { Dependency1LocaleResources } from "@aidc-toolkit/dependency1";
-import type { Dependency2LocaleResources } from "@aidc-toolkit/dependency2";
-import type { PackageLocaleResources } from "./i18n.js";
+import type { I18nLocaleResources } from "@aidc-toolkit/core";
 
 /**
- * Internationalization module.
+ * Internationalization module augmentation.
  */
 declare module "i18next" {
+  /**
+   * Custom type options for this package.
+   */
+  interface CustomTypeOptions {
     /**
-     * Custom type options for this package.
+     * Resources override.
      */
-    interface CustomTypeOptions {
-        /**
-         * Resources override.
-         */
-        resources: {
-          /**
-           * Core locale resources.
-           */
-          aidct_core: CoreLocaleResources;
-  
-          /**
-           * Dependency 1 locale resources.
-           */
-          aidct_dependency1: Dependency1LocaleResources;
-  
-          /**
-           * Dependency 2 locale resources.
-           */
-          aidct_dependency2: Dependency2LocaleResources;
-  
-          /**
-           * Package locale resources.
-           */
-          aidct_package: PackageLocaleResources;
-        };
-    }
+    resources: I18nLocaleResources;
+  }
 }
 ```
 
-The declaration in `i18next.d.ts` exposes the resources of the dependencies to the package. The initialization process merges all the resources into a single resource bundle matching the declaration.
+The declaration in `i18next.d.ts` is required to ensure that resource keys are property typed when using any of the translation functions (e.g., `i18nextCoreT`, `i18nextDependency1T`, `i18nextDependency2T`, `i18nextPackageT`). The initialization process merges all the resources into a single resource bundle matching the declaration.
 
 ### Environment-Specific Language Detection
 

@@ -1,7 +1,7 @@
-import type { CoreLocaleResources } from "./i18n.js";
+import type { I18nLocaleResources } from "./i18n.js";
 
 /**
- * Internationalization module.
+ * Internationalization module augmentation.
  */
 declare module "i18next" {
     /**
@@ -11,11 +11,6 @@ declare module "i18next" {
         /**
          * Resources override.
          */
-        resources: {
-            /**
-             * Core locale resources.
-             */
-            aidct_core: CoreLocaleResources;
-        };
+        resources: I18nLocaleResources;
     }
 }

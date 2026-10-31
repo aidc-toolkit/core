@@ -22,30 +22,9 @@ export interface LocaleResources {
 }
 
 /**
- * Convert a string to lower case, skipping words that are all upper case.
- *
- * @param value
- * Value.
- *
- * @returns
- * Lower case string if value is a string. If not, value is returned as a string but not converted to lower case.
- */
-function toLowerCase(value: unknown): string {
-    return typeof value === "string" ?
-        // Words with no lower case letters are preserved as they are likely mnemonics.
-        value.split(" ").map(word => /[a-z]/u.test(word) ? word.toLowerCase() : word).join(" ") :
-        String(value);
-}
-
-/**
  * Core namespace.
  */
 export const coreNS = "aidct_core";
-
-/**
- * Core parse keys.
- */
-export type CoreParseKeys = ParseKeys<typeof coreNS>;
 
 /**
  * Locale resources type is extracted from the English locale resources object.
@@ -53,14 +32,30 @@ export type CoreParseKeys = ParseKeys<typeof coreNS>;
 export type CoreLocaleResources = typeof enLocaleResources;
 
 /**
+ * Internationalization locale resources. Declares package-specific locale resources, which will be merged with
+ * declarations in downstream packages that also provide internationalization.
+ */
+export interface I18nLocaleResources {
+    /**
+     * Core locale resources.
+     */
+    [coreNS]: CoreLocaleResources;
+}
+
+/**
+ * Core parse keys.
+ */
+export type CoreParseKeys = ParseKeys<typeof coreNS>;
+
+/**
  * Core resource bundle.
  */
 export const coreResourceBundle: Resource = {
     en: {
-        aidct_core: enLocaleResources
+        [coreNS]: enLocaleResources
     },
     fr: {
-        aidct_core: frLocaleResources
+        [coreNS]: frLocaleResources
     }
 };
 
@@ -92,6 +87,22 @@ export function isI18nParseKey<
         ns,
         ...options
     });
+}
+
+/**
+ * Convert a string to lower case, skipping words that are all upper case.
+ *
+ * @param value
+ * Value.
+ *
+ * @returns
+ * Lower case string if value is a string. If not, value is returned as a string but not converted to lower case.
+ */
+function toLowerCase(value: unknown): string {
+    return typeof value === "string" ?
+        // Words with no lower case letters are preserved as they are likely mnemonics.
+        value.split(" ").map(word => /[a-z]/u.test(word) ? word.toLowerCase() : word).join(" ") :
+        String(value);
 }
 
 /**
