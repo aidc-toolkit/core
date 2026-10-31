@@ -184,7 +184,7 @@ import i18next from "i18next";
 import { StrictMode } from "react";
 import { createRoot } from "react-dom/client";
 import { App } from "./App.jsx";
-import { i18nPackageInit, i18nextPackageT } from "./locale/i18n.js";
+import { i18nPackageInit, i18nextPackage } from "./locale/i18n.js";
 
 i18nPackageInit(i18next.use(i18nCoreBrowserLanguageDetector)).then(() => {
     document.title = i18nextPackageT("App.title");
@@ -214,7 +214,7 @@ Parts of the AIDC Toolkit require persistent application data management, but th
 - Server-based applications use a database, which may have a strict schema.
 - Other applications may use a different mechanism entirely, such as storing content in an XML node in a document.
 
-The application data management functionality in this package provides a simple and consistent mechanism for managing application data. While not suitable for high-volume or transactional data, it's sufficient for most applications that require simple key-value storage.
+The application data management functionality in this package provides a simple and consistent mechanism for managing application data. While not suitable for high-volumne or transactional data, it's sufficient for most applications that require simple key-value storage.
 
 The [`AppData`](https://aidc-toolkit.com/v2.0/api/Core/type-aliases/AppData.html) type alias is a constrained type of `string`, `number`, `boolean`, `Date`, `Uint8Array`, array of `AppData`, or object consisting of `AppData` properties.
 

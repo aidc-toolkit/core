@@ -3,9 +3,7 @@ import { fromByteArray, toByteArray } from "base64-js";
 /**
  * Application data.
  */
-export type AppData<T = object> = string | number | boolean | Date | Uint8Array | AppData[] | {
-    [K in keyof T]: AppData;
-};
+export type AppData = string | number | boolean | object;
 
 /**
  * Decode application data from an encoded string.
@@ -22,7 +20,6 @@ export function decodeAppData(stringData: string): AppData | undefined {
     try {
         // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion -- Mapping is expected to be correct.
         decodedAppData = JSON.parse(stringData, (_key, value: unknown) => {
-            // Assume replacement value is the original value.
             let replacementValue = value;
 
             // Decode string representing date/time and binary array and pass through other values unmodified.
@@ -57,6 +54,32 @@ export function decodeAppData(stringData: string): AppData | undefined {
 }
 
 /**
+ * Encode an object to a format suitable for storage.
+ *
+ * @param o
+ * Object.
+ *
+ * @returns
+ * Object suitable for storage with date/time and binary types encoded as strings.
+ */
+function encodeObject(o: object): object | string {
+    let mappedData: object | string;
+
+    // Encode date/time and binary array as string and pass through other values unmodified.
+    if (o instanceof Date) {
+        mappedData = `dateTime:${o.toISOString()}`;
+    } else if (o instanceof Uint8Array) {
+        mappedData = `binary:${fromByteArray(o)}`;
+    } else {
+        mappedData = Object.fromEntries(Object.entries(o).map(([key, value]: [string, unknown]) =>
+            [key, typeof value === "object" && value !== null ? encodeObject(value) : value]
+        ));
+    }
+
+    return mappedData;
+}
+
+/**
  * Encode application data as a string for storage. Encoded string is in JSON format with date/time and binary data
  * converted to identifiable strings for decoding.
  *
@@ -67,37 +90,5 @@ export function decodeAppData(stringData: string): AppData | undefined {
  * Encoded application data.
  */
 export function encodeAppData(appData: AppData): string {
-    /**
-     * Preprocess application data for storage. This is necessary because the {@linkcode JSON.stringify} method
-     * stringifies {@linkcode Date} objects prior to calling the replacer.
-     *
-     * @param appData
-     * Application data.
-     *
-     * @returns
-     * Application data with date/time and binary data encoded as strings.
-     */
-    function preprocess(appData: AppData): AppData {
-        // Assume no preprocessing required.
-        let preprocessedAppData = appData;
-
-        if (typeof appData === "object") {
-            // Encode date/time and binary array as string and pass through other values unmodified.
-            if (appData instanceof Date) {
-                preprocessedAppData = `dateTime:${appData.toISOString()}`;
-            } else if (appData instanceof Uint8Array) {
-                preprocessedAppData = `binary:${fromByteArray(appData)}`;
-            } else if (Array.isArray(appData)) {
-                preprocessedAppData = appData.map(preprocess);
-            } else {
-                preprocessedAppData = Object.fromEntries(Object.entries(appData).map(([key, value]: [string, AppData]) =>
-                    [key, preprocess(value)]
-                ));
-            }
-        }
-
-        return preprocessedAppData;
-    }
-
-    return JSON.stringify(preprocess(appData));
+    return JSON.stringify(typeof appData !== "object" ? appData : encodeObject(appData));
 }

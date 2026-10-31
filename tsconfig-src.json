@@ -4,7 +4,6 @@
   "compilerOptions": {
     // Modules.
     "rootDir": "src",
-    "types": ["node"],
 
     // Emit.
     "outDir": "dist",
