@@ -38,7 +38,7 @@ export interface ParsedVersion {
  * Parsed version.
  */
 export function parseVersion(version: string): ParsedVersion {
-    const parsedVersionGroups = /^(?<majorVersion>\d+)\.(?<minorVersion>\d+)\.(?<patchVersion>\d+)(?:-(?<preReleaseIdentifier>alpha|beta)(?:\.(?<dateTime>\d{12}))?)?$/u.exec(version)?.groups;
+    const parsedVersionGroups = /^(?<majorVersion>\d+)\.(?<minorVersion>\d+)\.(?<patchVersion>\d+)(?:-(?<preReleaseIdentifier>alpha|beta)(?:\.(?<preReleaseDateTime>\d{12}))?)?$/u.exec(version)?.groups;
 
     if (parsedVersionGroups === undefined) {
         throw new Error(`Invalid package version ${version}`);
@@ -46,13 +46,13 @@ export function parseVersion(version: string): ParsedVersion {
 
     let preReleaseDateTime;
 
-    const dateTimeString = parsedVersionGroups["dateTime"];
+    const preReleaseDateTimeString = parsedVersionGroups["preReleaseDateTime"];
 
-    // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition -- dateTime is optional.
-    if (dateTimeString !== undefined) {
-        const dateTimeString = parsedVersionGroups["dateTime"];
+    // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition -- preReleaseDateTime is optional.
+    if (preReleaseDateTimeString !== undefined) {
+        const preReleaseDateTimeString = parsedVersionGroups["preReleaseDateTime"];
 
-        preReleaseDateTime = new Date(`${dateTimeString.substring(0, 4)}-${dateTimeString.substring(4, 6)}-${dateTimeString.substring(6, 8)}T${dateTimeString.substring(8, 10)}:${dateTimeString.substring(10, 12)}Z`);
+        preReleaseDateTime = new Date(`${preReleaseDateTimeString.substring(0, 4)}-${preReleaseDateTimeString.substring(4, 6)}-${preReleaseDateTimeString.substring(6, 8)}T${preReleaseDateTimeString.substring(8, 10)}:${preReleaseDateTimeString.substring(10, 12)}Z`);
     } else {
         preReleaseDateTime = undefined;
     }
