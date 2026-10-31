@@ -18,6 +18,11 @@
 export type * from "./type.js";
 export * from "./type-helper.js";
 
+export * from "./locale/i18n.js";
+export type * from "./locale/i18next.js";
+export * from "./locale/cli-language-detector.js";
+export * from "./locale/browser-language-detector.js";
+
 export * from "./logger.js";
 
 export * from "./parse-version.js";
@@ -31,7 +36,3 @@ export * from "./remote-app-data-storage.js";
 export * from "./cache.js";
 
 export type * from "./hyperlink.js";
-
-export * from "./locale/i18n.js";
-export * from "./locale/cli-language-detector.js";
-export * from "./locale/browser-language-detector.js";
