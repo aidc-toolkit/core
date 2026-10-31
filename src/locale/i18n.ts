@@ -15,7 +15,7 @@ import frLocaleResources from "./fr/locale-resources.js";
 export const DEFAULT_LANGUAGE = "en";
 
 /**
- * Locale strings type for generic manipulation.
+ * Locale resources type for generic manipulation.
  */
 export interface LocaleResources {
     [key: string]: LocaleResources | string | undefined;
