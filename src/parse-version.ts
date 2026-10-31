@@ -25,7 +25,7 @@ export interface ParsedVersion {
     /**
      * Date/time included with pre-release identifier.
      */
-    readonly dateTime: string | undefined;
+    readonly preReleaseDateTime: Date | undefined;
 }
 
 /**
@@ -44,11 +44,24 @@ export function parseVersion(version: string): ParsedVersion {
         throw new Error(`Invalid package version ${version}`);
     }
 
+    let preReleaseDateTime;
+
+    const dateTimeString = parsedVersionGroups["dateTime"];
+
+    // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition -- dateTime is optional.
+    if (dateTimeString !== undefined) {
+        const dateTimeString = parsedVersionGroups["dateTime"];
+
+        preReleaseDateTime = new Date(`${dateTimeString.substring(0, 4)}-${dateTimeString.substring(4, 6)}-${dateTimeString.substring(6, 8)}T${dateTimeString.substring(8, 10)}:${dateTimeString.substring(10, 12)}Z`);
+    } else {
+        preReleaseDateTime = undefined;
+    }
+
     return {
         majorVersion: Number(parsedVersionGroups["majorVersion"]),
         minorVersion: Number(parsedVersionGroups["minorVersion"]),
         patchVersion: Number(parsedVersionGroups["patchVersion"]),
         preReleaseIdentifier: parsedVersionGroups["preReleaseIdentifier"],
-        dateTime: parsedVersionGroups["dateTime"]
+        preReleaseDateTime
     };
 }
