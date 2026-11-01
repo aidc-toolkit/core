@@ -61,19 +61,6 @@ export function parseVersion(version: string): ParsedVersion {
         preReleaseDateTime = undefined;
     }
 
-    let preReleaseDateTime;
-
-    const preReleaseDateTimeString = parsedVersionGroups["preReleaseDateTime"];
-
-    // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition -- preReleaseDateTime is optional.
-    if (preReleaseDateTimeString !== undefined) {
-        const preReleaseDateTimeString = parsedVersionGroups["preReleaseDateTime"];
-
-        preReleaseDateTime = new Date(`${preReleaseDateTimeString.substring(0, 4)}-${preReleaseDateTimeString.substring(4, 6)}-${preReleaseDateTimeString.substring(6, 8)}T${preReleaseDateTimeString.substring(8, 10)}:${preReleaseDateTimeString.substring(10, 12)}Z`);
-    } else {
-        preReleaseDateTime = undefined;
-    }
-
     return {
         majorVersion: Number(parsedVersionGroups["majorVersion"]),
         minorVersion: Number(parsedVersionGroups["minorVersion"]),
