@@ -114,11 +114,8 @@ function toLowerCase(value: unknown): string {
  * @param debug
  * Debug setting.
  *
- * @param defaultNS
- * Default namespace.
- *
- * @param defaultResourceBundle
- * Default resource bundle.
+ * @param resourceBundle
+ * Resource bundle.
  *
  * @param i18nDependencyInits
  * Dependency internationalization initialization functions.
@@ -160,7 +157,7 @@ export async function i18nInit(i18next: i18n, debug: boolean, resourceBundle: Re
             }
         }
 
-        mergeResourceBundle(defaultResourceBundle);
+        mergeResourceBundle(resourceBundle);
 
         let initDependencies;
 
@@ -173,12 +170,11 @@ export async function i18nInit(i18next: i18n, debug: boolean, resourceBundle: Re
 
         const initThis = i18next.init({
             debug,
-            defaultNS,
             resources: mergedResourceBundle,
             // Allow fallback by removing variant code then country code until match is found.
             nonExplicitSupportedLngs: true,
-            // Fallback to first language defined.
-            fallbackLng: Object.keys(mergedResourceBundle)[0],
+            // Fallback to default language.
+            fallbackLng: DEFAULT_LANGUAGE,
             detection: {
                 // Disabling cache allows read but requires explicit saving of i18nextLng attribute (e.g., via UI).
                 caches: []
@@ -190,7 +186,7 @@ export async function i18nInit(i18next: i18n, debug: boolean, resourceBundle: Re
 
         result = initDependencies === undefined ? initThis : initDependencies.then(async () => initThis);
     } else {
-        result = defaultResourceBundle;
+        result = resourceBundle;
     }
 
     return result;

@@ -1,5 +1,5 @@
 import { type ISettingsParam, Logger } from "tslog";
-import { i18nextCore } from "./locale/i18n.js";
+import { i18nextCoreT } from "./locale/i18n.js";
 
 /**
  * Log levels.
@@ -41,7 +41,7 @@ export function logLevelOf(untypedLogLevel?: string | number): LogLevel {
             // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion -- String exists as a key.
             typedLogLevel = LogLevels[untypedLogLevel as LogLevelKey];
         } else {
-            throw new RangeError(i18nextCore.t("Logger.unknownLogLevel", {
+            throw new RangeError(i18nextCoreT("Logger.unknownLogLevel", {
                 logLevel: untypedLogLevel
             }));
         }
@@ -51,7 +51,7 @@ export function logLevelOf(untypedLogLevel?: string | number): LogLevel {
             // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion -- Valid log level has been provided.
             typedLogLevel = untypedLogLevel as LogLevel;
         } else {
-            throw new RangeError(i18nextCore.t("Logger.unknownLogLevel", {
+            throw new RangeError(i18nextCoreT("Logger.unknownLogLevel", {
                 logLevel: untypedLogLevel
             }));
         }
@@ -88,9 +88,15 @@ export function getLogger<T extends object = object>(logLevel?: string | number,
     const minLevel = logLevelOf(logLevel);
 
     return new Logger({
-        // Hiding log position for production can be overridden in settings parameter.
-        hideLogPositionForProduction: minLevel >= LogLevels.Info,
-        ...settings ?? {},
+        // Stack capture for production can be overridden in settings parameter.
+        stack: minLevel >= LogLevels.Info ?
+            {
+                capture: "off"
+            } :
+            {
+                capture: "full"
+            },
+        ...settings,
         // Minimum log level overrides settings parameter.
         minLevel
     }, logObj);
