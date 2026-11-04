@@ -70,6 +70,9 @@ function encodeObject(o: object): object | string {
         mappedData = `dateTime:${o.toISOString()}`;
     } else if (o instanceof Uint8Array) {
         mappedData = `binary:${fromByteArray(o)}`;
+    } else if (Array.isArray(o)) {
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion -- Only array of AppData is permitted.
+        mappedData = (o as AppData[]).map(entry => typeof entry !== "object" ? entry : encodeObject(entry));
     } else {
         mappedData = Object.fromEntries(Object.entries(o).map(([key, value]: [string, unknown]) =>
             [key, typeof value === "object" && value !== null ? encodeObject(value) : value]
