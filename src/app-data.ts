@@ -89,9 +89,12 @@ function encodeObject(o: object): object | string {
  * @param appData
  * Application data.
  *
+ * @param format
+ * If true, format for readability.
+ *
  * @returns
  * Encoded application data.
  */
-export function encodeAppData(appData: AppData): string {
-    return JSON.stringify(typeof appData !== "object" ? appData : encodeObject(appData));
+export function encodeAppData(appData: AppData, format = false): string {
+    return `${JSON.stringify(typeof appData !== "object" ? appData : encodeObject(appData), null, format ? 2 : undefined)}${format ? "\n" : ""}`;
 }

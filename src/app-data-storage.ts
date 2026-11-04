@@ -132,14 +132,17 @@ export abstract class AppDataStorage<SupportsBinary extends boolean> extends Rea
      *
      * @param appData
      * Application data to write.
+     *
+     * @param format
+     * If true, format for readability.
      */
-    async write(pathKey: string, appData: AppData): Promise<void> {
+    async write(pathKey: string, appData: AppData, format = false): Promise<void> {
         const isBinary = appData instanceof Uint8Array;
 
         // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion -- Type is determined by supports binary flag.
         await this.doWrite(this.fullKey(pathKey, isBinary), (this.supportsBinary && isBinary ?
             appData :
-            encodeAppData(appData)
+            encodeAppData(appData, format)
         ) as Parameters<typeof this.doWrite>[1]);
     }
 
