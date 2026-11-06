@@ -17,8 +17,8 @@ export class LocalAppDataStorage extends AppDataStorage {
      * Local application data storage object.
      */
     static async get(path?: string): Promise<LocalAppDataStorage> {
-        // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition -- localStorage is undefined when running under Node.js.
-        const delegate = globalThis.localStorage !== undefined ?
+        // localStorage may be undefined when running under Node.js.
+        const delegate = globalThis.localStorage as typeof globalThis.localStorage | undefined !== undefined ?
             new BrowserAppDataStorageDelegate() :
             await import("./file-app-data-storage-delegate.js").then(module => module.FileAppDataStorageDelegate.isNodeFSAvailable() ?
                 new module.FileAppDataStorageDelegate() :

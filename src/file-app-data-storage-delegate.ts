@@ -13,8 +13,8 @@ export class FileAppDataStorageDelegate extends AppDataStorageDelegate {
      * True if node:fs is available.
      */
     static isNodeFSAvailable(): boolean {
-        // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition -- Optional chain result is undefined in some polyfilled environments.
-        return fs?.promises?.readFile !== undefined;
+        // Optional chain result is undefined in some polyfilled environments.
+        return (fs.promises as typeof fs.promises | undefined)?.readFile !== undefined;
     }
 
     /**

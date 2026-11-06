@@ -50,9 +50,9 @@ export function parseVersion(version: string): ParsedVersion {
 
     let preReleaseDateTime;
 
-    const preReleaseDateTimeString = parsedVersionGroups["preReleaseDateTime"];
+    // preReleaseDateTime is optional.
+    const preReleaseDateTimeString = parsedVersionGroups["preReleaseDateTime"] as string | undefined;
 
-    // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition -- preReleaseDateTime is optional.
     if (preReleaseDateTimeString !== undefined) {
         const preReleaseDateTimeString = parsedVersionGroups["preReleaseDateTime"];
 
