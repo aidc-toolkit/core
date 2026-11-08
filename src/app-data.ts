@@ -64,7 +64,7 @@ export function decodeAppData(stringData: string): AppData | undefined {
  * Application data.
  *
  * @param format
- * If true, format for readability.
+ * True if output should be formatted for readability.
  *
  * @returns
  * Encoded application data.

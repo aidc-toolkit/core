@@ -53,7 +53,7 @@ export const WEBSITE_BASE_URL = "https://aidc-toolkit.com";
  * Package version.
  *
  * @param includeVersionInProduction
- * If true, the version is included in the URL in production.
+ * True if the version should be included in the URL in production.
  *
  * @param alphaURL
  * URL if pre-release identifier is "alpha".

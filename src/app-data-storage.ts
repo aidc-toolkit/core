@@ -181,7 +181,7 @@ export abstract class AppDataStorage<TDelegate extends AppDataStorageDelegate = 
      * Application data to write.
      *
      * @param format
-     * If true, format for readability.
+     * True if output should be formatted for readability.
      */
     async write(pathKey: string, appData: AppData, format = false): Promise<void> {
         const isBinary = appData instanceof Uint8Array;
