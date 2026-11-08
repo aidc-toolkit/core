@@ -223,21 +223,21 @@ export class MemoryTransport<T extends object> {
     }
 
     /**
-     * Get the messages.
+     * Messages.
      */
     get messages(): string[] {
         return this.#messages;
     }
 
     /**
-     * Get the maximum length of messages array.
+     * Maximum length of messages array.
      */
     get maximumLength(): number {
         return this.#maximumLength;
     }
 
     /**
-     * Get the length to which messages array is truncated when maximum is reached.
+     * Length to which messages array is truncated when maximum is reached.
      */
     get truncateLength(): number {
         return this.#truncateLength;

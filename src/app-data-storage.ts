@@ -21,7 +21,7 @@ export abstract class ReadOnlyAppDataStorageDelegate {
     }
 
     /**
-     * Determine if binary data is natively supported.
+     * True if binary data is natively supported.
      */
     get supportsBinary(): boolean {
         return this.#supportsBinary;
@@ -82,21 +82,21 @@ export abstract class ReadOnlyAppDataStorage<TDelegate extends ReadOnlyAppDataSt
     }
 
     /**
-     * Get the delegate.
+     * Delegate.
      */
     get delegate(): TDelegate {
         return this.#delegate;
     }
 
     /**
-     * Determine if binary data is supported.
+     * True if binary data is natively supported.
      */
     get supportsBinary(): boolean {
         return this.delegate.supportsBinary;
     }
 
     /**
-     * Get the storage path, prepended to each key.
+     * Storage path prepended to each key.
      */
     get path(): string {
         return this.#path;
