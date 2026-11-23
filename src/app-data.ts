@@ -93,8 +93,8 @@ export function encodeAppData(appData: AppData, format = false): string {
             } else if (Array.isArray(appData)) {
                 preprocessedAppData = appData.map(preprocess);
             } else {
-                preprocessedAppData = Object.fromEntries(Object.entries(appData).map(([key, value]: [string, AppData]) =>
-                    [key, preprocess(value)]
+                preprocessedAppData = Object.fromEntries(Object.entries(appData).map(
+                    ([key, value]: [string, AppData]) => [key, preprocess(value)]
                 ));
             }
         }

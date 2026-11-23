@@ -20,9 +20,10 @@ export class LocalAppDataStorage extends AppDataStorage {
         // localStorage may be undefined when running under Node.js.
         const delegate = globalThis.localStorage as typeof globalThis.localStorage | undefined !== undefined ?
             new BrowserAppDataStorageDelegate() :
-            await import("./file-app-data-storage-delegate.js").then(module => module.FileAppDataStorageDelegate.isNodeFSAvailable() ?
-                new module.FileAppDataStorageDelegate() :
-                new NoOpAppDataStorageDelegate()
+            await import("./file-app-data-storage-delegate.js").then(
+                module => module.FileAppDataStorageDelegate.isNodeFSAvailable() ?
+                    new module.FileAppDataStorageDelegate() :
+                    new NoOpAppDataStorageDelegate()
             );
 
         return new LocalAppDataStorage(delegate, path);
