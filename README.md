@@ -84,7 +84,7 @@ export const packageResourceBundle: Resource = {
     fr: {
         [packageNS]: frLocaleResources
     }
-};
+} as const;
 
 /**
  * Package i18next translator function.

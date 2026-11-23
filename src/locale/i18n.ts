@@ -57,7 +57,7 @@ export const coreResourceBundle: Resource = {
     fr: {
         [coreNS]: frLocaleResources
     }
-};
+} as const;
 
 /**
  * Internationalization instance.
