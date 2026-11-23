@@ -16,7 +16,11 @@
  */
 
 export type * from "./type.js";
-export * from "./type-helper.js";
+export * from "./omit-pick.js";
+export * from "./exclude-include.js";
+export * from "./intersect.js";
+export * from "./readonly-object-values.js";
+export * from "./is-value-type.js";
 
 export * from "./locale/i18n.js";
 export type * from "./locale/i18next.js";
