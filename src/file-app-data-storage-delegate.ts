@@ -30,9 +30,7 @@ export class FileAppDataStorageDelegate extends AppDataStorageDelegate {
     override async doRead(key: string, asBinary: boolean | undefined): Promise<string | Uint8Array | undefined> {
         return fs.promises.readFile(key).then(
             buffer => asBinary === true ? buffer : buffer.toString()
-        ).catch(
-            () => undefined
-        );
+        ).catch(() => undefined);
     }
 
     /**
@@ -41,9 +39,7 @@ export class FileAppDataStorageDelegate extends AppDataStorageDelegate {
     override async doWrite(key: string, data: string | Uint8Array): Promise<void> {
         return fs.promises.mkdir(path.dirname(key), {
             recursive: true
-        }).then(
-            async () => fs.promises.writeFile(key, data)
-        );
+        }).then(async () => fs.promises.writeFile(key, data));
     }
 
     /**
