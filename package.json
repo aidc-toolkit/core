@@ -34,8 +34,7 @@
     "prepack": "npmignore --ignore !/dist/,/.*,/*.iml"
   },
   "devDependencies": {
-    "@aidc-toolkit/dev": "^2.0.0-alpha",
-    "@types/node": "^26.6.6"
+    "@aidc-toolkit/dev": "^2.0.0-alpha"
   },
   "dependencies": {
     "base64-js": "^1.5.1",
